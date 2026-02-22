@@ -7,10 +7,12 @@ const createOrder = async (req, res) => {
   const user = req.user;
   const token = req.cookies?.token || req.headers?.authorization?.split(" ")[1];
 
+  // http://localhost:3002/api/cart/items
+
   try {
     // fetch user cart from cart service
     const cartResponse = await axios.get(
-      `http://localhost:3002/api/cart/items`,
+      `${process.env.CART_SERVICE_URL}/items`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -23,11 +25,12 @@ const createOrder = async (req, res) => {
         .status(400)
         .json({ message: "Cart is empty. Cannot create order." });
     }
+// http://localhost:3001/api/products/${item.productId}
 
     const products = await Promise.all(
       cartResponse.data.items.map(async (item) => {
         const resp = await axios.get(
-          `http://localhost:3001/api/products/${item.productId}`,
+          `${process.env.PRODUCT_SERVICE_URL}/${item.productId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

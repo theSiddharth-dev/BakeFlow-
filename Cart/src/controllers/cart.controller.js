@@ -7,14 +7,11 @@ const addItemToCart = async (req, res) => {
     const reserve = req.query.reserve === "true";
     const user = req.user;
 
-    const productServiceUrl =
-      process.env.PRODUCT_SERVICE_URL || "http://localhost:3001";
-
     // Fetch product info to check existence and stock
     let product;
     try {
       const { data } = await axios.get(
-        `${productServiceUrl}/api/products/${productId}`,
+        `${process.env.PRODUCT_SERVICE_URL}/api/products/${productId}`,
       );
       product = data;
     } catch (err) {
@@ -37,7 +34,7 @@ const addItemToCart = async (req, res) => {
     if (reserve) {
       try {
         await axios.post(
-          `${productServiceUrl}/api/products/${productId}/reserve`,
+          `${process.env.PRODUCT_SERVICE_URL}/api/products/${productId}/reserve`,
           { qty, userId: user.id },
         );
       } catch (err) {
@@ -95,8 +92,6 @@ const getCartItems = async (req, res) => {
     }
 
     // Fetch product details from product service for each unique product
-    const productServiceUrl =
-      process.env.PRODUCT_SERVICE_URL || "http://localhost:3001";
     const items = [];
     let subtotal = 0;
     let serviceError = false;
@@ -106,7 +101,7 @@ const getCartItems = async (req, res) => {
       try {
         // Fetch product details from product service (prevents price tampering)
         const productResponse = await axios.get(
-          `${productServiceUrl}/api/products/${cartItem.productId}`,
+          `${process.env.PRODUCT_SERVICE_URL}/api/products/${cartItem.productId}`,
         );
         const product = productResponse.data.product;
 
@@ -170,14 +165,12 @@ const updateCartItemQuantity = async (req, res) => {
     const { qty } = req.body;
     const user = req.user;
 
-    const productServiceUrl =
-      process.env.PRODUCT_SERVICE_URL || "http://localhost:3001";
-
+    
     // Ensure product exists and fetch stock
     let product;
     try {
       const { data } = await axios.get(
-        `${productServiceUrl}/api/products/${productId}`,
+        `${process.env.PRODUCT_SERVICE_URL}/api/products/${productId}`,
       );
       product = data;
     } catch (err) {

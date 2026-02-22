@@ -13,10 +13,11 @@ const razorpay = new Razorpay({
 const createPayment = async (req, res) => {
   const token = req.cookies?.token || req.headers?.authorization?.split(" ")[1];
 
+  // http://localhost:3003/api/orders/
   try {
     const orderId = req.params.orderId;
     const orderResponse = await axios.get(
-      `http://localhost:3003/api/orders/` + orderId,
+      `${process.env.ORDER_SERVICE_URL}/api/orders/${orderId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
