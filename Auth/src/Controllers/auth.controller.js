@@ -65,7 +65,8 @@ const registerUser = async (req, res) => {
     res.cookie("token", token, {
       // Set token in cookie
       httpOnly: true, // Prevent access via JavaScript
-      secure:process.env.NODE_ENV !== "test", // Use secure cookies in non-test environments
+      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Cross-origin cookie handling
       maxAge: 24 * 60 * 60 * 1000, // Expires in 24 hours
     });
 
@@ -129,7 +130,8 @@ const loginUser = async (req, res) => {
     res.cookie("token", token, {
       // Set token cookie
       httpOnly: true,
-      secure: process.env.NODE_ENV !== "test", // Secure in non-test env
+      secure: process.env.NODE_ENV === "production", // Secure in production
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Cross-origin cookie handling
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     });
 
