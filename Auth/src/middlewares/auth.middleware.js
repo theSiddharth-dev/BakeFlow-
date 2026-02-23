@@ -1,35 +1,33 @@
-const jwt = require("jsonwebtoken"); // Import JWT library for token verification
-const redis = require("../db/Redis"); // Import Redis instance for token blacklist check
+const jwt = require("jsonwebtoken");
+const redis = require("../db/Redis");
 
 const authMiddleware = async (req, res, next) => {
-  // Define async middleware function for authentication
-  const token = req.cookies.token; // Get token from cookies
+  // Extract token from Authorization: Bearer <token> header
+  const authHeader = req.headers.authorization;
+  const token =
+    authHeader && authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : null;
 
   if (!token) {
-    // If no token
-    return res.status(401).json({ message: "Unauthorized" }); // Return unauthorized error
+    return res.status(401).json({ message: "Unauthorized: No token provided" });
   }
 
   try {
-    // Try block for error handling
-    // Check if token is blacklisted
-    const isBlacklisted = await redis.get(`blacklist_${token}`); // Check Redis for blacklisted token
+    // Check if token is blacklisted in Redis
+    const isBlacklisted = await redis.get(`blacklist_${token}`);
     if (isBlacklisted) {
-      // If blacklisted
-      return res.status(401).json({ message: "Unauthorized" }); // Return unauthorized error
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Token has been revoked" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify and decode the token
-
-    const user = decoded; // Assign decoded data to user
-
-    req.user = user; // Attach user to request object
-
-    next(); // Proceed to next middleware
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
   } catch (error) {
-    // Catch block for errors
-    return res.status(401).json({ message: "Unauthorized" }); // Return unauthorized error
+    return res.status(401).json({ message: "Unauthorized: Invalid token" });
   }
 };
 
-module.exports = { authMiddleware }; // Export the middleware function
+module.exports = { authMiddleware };

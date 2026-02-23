@@ -58,20 +58,13 @@ const registerUser = async (req, res) => {
         email: user.email,
         role: user.role,
       },
-      process.env.JWT_SECRET, // Secret key from environment
-      { expiresIn: "1d" }, // Expires in 1 day
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" },
     );
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true, // Required for HTTPS
-      sameSite: "none", // REQUIRED for cross-origin
-      maxAge: 24 * 60 * 60 * 1000,
-    });
-
     res.status(201).json({
-      // Return success response
       message: "User registered Successfully",
+      token,
       user: {
         id: user._id,
         username: user.username,
@@ -161,27 +154,17 @@ const getCurrentUser = async (req, res) => {
 };
 
 const logoutUser = async (req, res) => {
-  // Define async function for logout
   try {
-    // Try block
-    const token = req.cookies.token; // Get token from cookies
+    // Extract token from Authorization header
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
 
-    // Blacklist the token in Redis
+    // Blacklist the token in Redis so it can't be reused
     if (token) {
-      // If token exists
-      await redis.set(`blacklist_${token}`, "true", "EX", 24 * 60 * 60); // Set in Redis with 24h expiry
+      await redis.set(`blacklist_${token}`, "true", "EX", 24 * 60 * 60);
     }
 
-    // Clear the cookie
-    res.clearCookie("token", {
-      // Clear token cookie
-      httpOnly: true,
-      secure: process.env.NODE_ENV !== "test", // Secure in non-test
-      sameSite: "strict", // Strict same-site policy
-    });
-
     res.status(200).json({
-      // Return success
       message: "Logout successful",
     });
   } catch (err) {
