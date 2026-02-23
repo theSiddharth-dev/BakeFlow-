@@ -65,7 +65,7 @@ const registerUser = async (req, res) => {
     res.cookie("token", token, {
       // Set token in cookie
       httpOnly: true, // Prevent access via JavaScript
-      secure: true, // Send only over HTTPS
+      secure:process.env.NODE_ENV !== "test", // Use secure cookies in non-test environments
       maxAge: 24 * 60 * 60 * 1000, // Expires in 24 hours
     });
 
