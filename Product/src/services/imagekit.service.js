@@ -1,4 +1,4 @@
-import ImageKit from "imagekit";
+const ImageKit = require("imagekit");
 const { v4: uuidv4 } = require("uuid");
 
 const imagekit = new ImageKit({
@@ -18,7 +18,7 @@ const uploadImages = async (files) => {
       });
       return {
         url: result.url,
-        thumbnail: result.thumbnail,
+        thumbnail: result.thumbnailUrl,
         id: result.fileId,
       };
     })
