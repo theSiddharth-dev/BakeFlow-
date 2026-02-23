@@ -9,7 +9,8 @@ ConnecttoDB();
 // Make the connection with RabbitMQ for notification
 Connect(); 
 
-app.listen(3000, () => {
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
   
-  console.log("Auth service is running on port number 3000"); 
+  console.log(`Auth service is running on port number ${PORT}`); 
 });
