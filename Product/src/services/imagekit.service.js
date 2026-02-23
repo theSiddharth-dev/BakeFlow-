@@ -1,5 +1,5 @@
-import ImageKit from "imagekit";
-import { v4 as uuidv4 } from "uuid";
+const ImageKit = require("imagekit");
+const { v4: uuidv4 } = require("uuid");
 
 const imagekit = new ImageKit({
   publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
@@ -26,4 +26,4 @@ const uploadImages = async (files) => {
   return imageUploads;
 };
 
-export default { uploadImages };
+module.exports = {uploadImages}
