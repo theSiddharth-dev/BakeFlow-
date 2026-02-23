@@ -7,7 +7,9 @@ const {Connect}  = require("./src/Broker/Broker")
 ConnecttoDB();
 Connect();
 
-app.listen(3001,()=>{
-    console.log("Product Service is running on the port number 3001");
+const PORT = process.env.PORT || 3001
+
+app.listen(PORT,()=>{
+    console.log(`Product Service is running on the port number ${PORT}`);
 })
 
