@@ -1,4 +1,4 @@
-const ImageKit = require("imagekit");
+import ImageKit from "imagekit";
 const { v4: uuidv4 } = require("uuid");
 
 const imagekit = new ImageKit({
