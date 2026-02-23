@@ -1,7 +1,7 @@
 const userModel = require("../models/user.model");
-const bcrypt = require("bcrypt"); 
-const jwt = require("jsonwebtoken"); 
-const redis = require("../db/Redis"); 
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const redis = require("../db/Redis");
 const { publishtoQueue } = require("../Broker/Broker");
 
 const registerUser = async (req, res) => {
@@ -40,16 +40,16 @@ const registerUser = async (req, res) => {
       role: role || "user", // Set role, default to 'user'
     });
 
-    // put the data Notification Queue 
+    // put the data Notification Queue
     await Promise.all([
       publishtoQueue("AUTH_NOTIFICATION.USER_CREATED", {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      fullName: user.fullName,
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
       }),
       publishtoQueue("AUTH_SELLER_DASHBOARD.USER_CREATED", user),
-    ])
+    ]);
 
     const token = jwt.sign(
       {
@@ -59,15 +59,14 @@ const registerUser = async (req, res) => {
         role: user.role,
       },
       process.env.JWT_SECRET, // Secret key from environment
-      { expiresIn: "1d" } // Expires in 1 day
+      { expiresIn: "1d" }, // Expires in 1 day
     );
 
     res.cookie("token", token, {
-      // Set token in cookie
-      httpOnly: true, // Prevent access via JavaScript
-      secure: process.env.NODE_ENV === "production", // Use secure cookies in production
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Cross-origin cookie handling
-      maxAge: 24 * 60 * 60 * 1000, // Expires in 24 hours
+      httpOnly: true,
+      secure: true, // Required for HTTPS
+      sameSite: "none", // REQUIRED for cross-origin
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     res.status(201).json({
@@ -82,11 +81,9 @@ const registerUser = async (req, res) => {
         addresss: user.address,
       },
     });
-
-
   } catch (err) {
     // Catch block for errors
-    console.error("Error in registration:",err); // Log error (note: missing space after colon)
+    console.error("Error in registration:", err); // Log error (note: missing space after colon)
     res.status(500).json({ message: "internal server error" }); // Return server error
   }
 };
@@ -106,7 +103,7 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" }); // Return unauthorized
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password); // Compare passwords
+    const isPasswordValid = bcrypt.compare(password, user.password); // Compare passwords
 
     if (!isPasswordValid) {
       // If password invalid
@@ -124,14 +121,14 @@ const loginUser = async (req, res) => {
         fullName: user.fullName,
       },
       process.env.JWT_SECRET, // Secret
-      { expiresIn: "1d" } // Expires in 1 day
+      { expiresIn: "1d" }, // Expires in 1 day
     );
 
     res.cookie("token", token, {
       // Set token cookie
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Secure in production
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Cross-origin cookie handling
+      secure: true,
+      sameSite: "none",
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     });
 
@@ -241,7 +238,7 @@ const addAddress = async (req, res) => {
           },
         },
       },
-      { new: true } // Return updated document
+      { new: true }, // Return updated document
     );
 
     if (!user) {
@@ -277,7 +274,7 @@ const removeAddress = async (req, res) => {
           addresses: { _id: addressId }, // Pull matching address
         },
       },
-      { new: true } // Return updated document
+      { new: true }, // Return updated document
     );
 
     if (!user) {
@@ -287,7 +284,7 @@ const removeAddress = async (req, res) => {
 
     const addressIndex = user.address.findIndex(
       // Find index of address
-      (addr) => addr._id.toString() === addressId // Match by ID
+      (addr) => addr._id.toString() === addressId, // Match by ID
     );
     if (addressIndex === -1) {
       // If not found

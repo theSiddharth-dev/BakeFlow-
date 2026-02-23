@@ -7,9 +7,12 @@ const app = express();
 
 app.use(
   cors({
-    origin: true,
+    origin: [
+      "https://auth-service-j068.onrender.com/",
+      "https://product-service-58x4.onrender.com/"
+    ],
     credentials: true,
-  }),
+  })
 );
 app.use(express.json());
 app.use(cookieParser());
@@ -19,6 +22,7 @@ app.get("/", (req, res) => {
     message: "Auth service is running ",
   });
 });
+
 app.use("/api/auth", authRoutes);
 
 module.exports = app;
