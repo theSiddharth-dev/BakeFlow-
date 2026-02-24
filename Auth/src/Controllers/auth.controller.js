@@ -117,8 +117,9 @@ const loginUser = async (req, res) => {
       },
       process.env.JWT_SECRET, // Secret
       { expiresIn: "1d" }, // Expires in 1 day
-    );
 
+    );
+    
     res.header("Authorization", `Bearer ${token}`); // Set Authorization header with Bearer token
 
     res.status(200).json({

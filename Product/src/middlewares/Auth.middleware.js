@@ -2,9 +2,8 @@ const jwt = require("jsonwebtoken");
 
 const createAuthMiddleware = (roles = ["user"]) => {
   return function authMiddleware(req, res, next) {
-    // Extract token from Authorization: Bearer <token> header
-    const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
+    
+    const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
       return res.status(401).json({ error: "Unauthorized: No token provided" });
