@@ -62,8 +62,6 @@ const registerUser = async (req, res) => {
       { expiresIn: "1d" }, // Expires in 1 day
     );
 
-   res.header("Authorization", `Bearer ${token}`); // Set Authorization header with Bearer token
-
     res.status(201).json({
       // Return success response
       message: "User registered Successfully",
@@ -119,8 +117,7 @@ const loginUser = async (req, res) => {
       { expiresIn: "1d" }, // Expires in 1 day
 
     );
-    
-    res.header("Authorization", `Bearer ${token}`); // Set Authorization header with Bearer token
+
 
     res.status(200).json({
       // Return success
@@ -160,21 +157,13 @@ const logoutUser = async (req, res) => {
     const token =
       authHeader && authHeader.startsWith("Bearer ")
         ? authHeader.split(" ")[1]
-        : req.cookies?.token;
+        :null
 
     // Blacklist the token in Redis
-    if (token) {
+    if(token){
       // If token exists
       await redis.set(`blacklist_${token}`, "true", "EX", 24 * 60 * 60); // Set in Redis with 24h expiry
     }
-
-    // Clear the cookie
-    res.clearCookie("token", {
-      // Clear token cookie
-      httpOnly: true,
-      secure: process.env.NODE_ENV !== "test", // Secure in non-test
-      sameSite: "strict", // Strict same-site policy
-    });
 
     res.status(200).json({
       // Return success
