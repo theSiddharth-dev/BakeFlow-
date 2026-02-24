@@ -8,10 +8,10 @@ const app = express();
 app.use(
   cors({
     origin: [
-          "https://auth-service-j068.onrender.com/",
           "https://product-service-58x4.onrender.com/"
         ],
         accessControlAllowCredentials: true,
+        
         credentials: true,
   }),
 );
