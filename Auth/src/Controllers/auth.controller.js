@@ -62,11 +62,7 @@ const registerUser = async (req, res) => {
       { expiresIn: "1d" }, // Expires in 1 day
     );
 
-    res.cookie("token", token, {
-      secure: true,
-      sameSite: "none", // Allow cross-site cookies
-      maxAge: 24 * 60 * 60 * 1000, // Expires in 24 hours
-    });
+   res.header("Authorization", `Bearer ${token}`); // Set Authorization header with Bearer token
 
     res.status(201).json({
       // Return success response
@@ -123,12 +119,7 @@ const loginUser = async (req, res) => {
       { expiresIn: "1d" }, // Expires in 1 day
     );
 
-    res.cookie("token", token, {
-      // Set token cookie
-      secure: true,
-      sameSite: "none",
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    });
+    res.header("Authorization", `Bearer ${token}`); // Set Authorization header with Bearer token
 
     res.status(200).json({
       // Return success
