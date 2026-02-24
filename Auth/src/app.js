@@ -10,9 +10,7 @@ app.use(
     origin: [
           "https://product-service-58x4.onrender.com/"
         ],
-        accessControlAllowCredentials: true,
-        
-        credentials: true,
+        accessControlAllowCredentials: true,        credentials: true,
   }),
 );
 app.use(express.json());
