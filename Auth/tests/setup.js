@@ -14,3 +14,11 @@ jest.mock("ioredis", () => ({
     on: jest.fn(), // Mock on method
   })),
 }));
+
+// Mock Broker for tests
+jest.mock("../src/Broker/Broker", () => ({
+  // Mock the Broker module
+  Connect: jest.fn().mockResolvedValue(true), // Mock Connect function
+  publishtoQueue: jest.fn().mockResolvedValue(true), // Mock publishtoQueue function
+  subscribeToQueue: jest.fn(), // Mock subscribeToQueue function
+}));

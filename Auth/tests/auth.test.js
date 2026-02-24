@@ -699,3 +699,356 @@ describe("DELETE /api/auth/users/me/address/:addressId", () => {
     expect(response.body).toHaveProperty("message", "Unauthorized"); // Check error
   });
 });
+
+describe("POST /api/auth/change-password", () => {
+  // Test suite for change password endpoint
+  it("should change password successfully", async () => {
+    // Test successful password change
+    // Register a user
+    const userData = {
+      username: "testuser",
+      email: "test@example.com",
+      password: "oldPassword123",
+      fullName: {
+        firstName: "Test",
+        lastName: "User",
+      },
+    };
+
+    await request(app).post("/api/auth/register").send(userData).expect(201);
+
+    // Login to get token
+    const loginResponse = await request(app)
+      .post("/api/auth/login")
+      .send({ email: userData.email, password: userData.password })
+      .expect(200);
+
+    const token = loginResponse.body.token;
+
+    // Change password
+    const changePasswordData = {
+      currentPassword: "oldPassword123",
+      newPassword: "newPassword456",
+    };
+
+    const response = await request(app)
+      .post("/api/auth/change-password")
+      .set("Authorization", `Bearer ${token}`)
+      .send(changePasswordData)
+      .expect(200);
+
+    expect(response.body).toHaveProperty(
+      "message",
+      "Password changed successfully"
+    );
+
+    // Verify old password no longer works
+    await request(app)
+      .post("/api/auth/login")
+      .send({ email: userData.email, password: "oldPassword123" })
+      .expect(401);
+
+    // Verify new password works
+    const newLoginResponse = await request(app)
+      .post("/api/auth/login")
+      .send({ email: userData.email, password: "newPassword456" })
+      .expect(200);
+
+    expect(newLoginResponse.body).toHaveProperty("message", "Login successful");
+  });
+
+  it("should return 401 for incorrect current password", async () => {
+    // Test incorrect current password
+    // Register a user
+    const userData = {
+      username: "testuser",
+      email: "test@example.com",
+      password: "correctPassword123",
+      fullName: {
+        firstName: "Test",
+        lastName: "User",
+      },
+    };
+
+    await request(app).post("/api/auth/register").send(userData).expect(201);
+
+    // Login to get token
+    const loginResponse = await request(app)
+      .post("/api/auth/login")
+      .send({ email: userData.email, password: userData.password })
+      .expect(200);
+
+    const token = loginResponse.body.token;
+
+    // Try to change password with wrong current password
+    const changePasswordData = {
+      currentPassword: "wrongPassword123",
+      newPassword: "newPassword456",
+    };
+
+    const response = await request(app)
+      .post("/api/auth/change-password")
+      .set("Authorization", `Bearer ${token}`)
+      .send(changePasswordData)
+      .expect(401);
+
+    expect(response.body).toHaveProperty(
+      "message",
+      "Current password is incorrect"
+    );
+  });
+
+  it("should return 400 if new password is same as current password", async () => {
+    // Test same password
+    // Register a user
+    const userData = {
+      username: "testuser",
+      email: "test@example.com",
+      password: "password123",
+      fullName: {
+        firstName: "Test",
+        lastName: "User",
+      },
+    };
+
+    await request(app).post("/api/auth/register").send(userData).expect(201);
+
+    // Login to get token
+    const loginResponse = await request(app)
+      .post("/api/auth/login")
+      .send({ email: userData.email, password: userData.password })
+      .expect(200);
+
+    const token = loginResponse.body.token;
+
+    // Try to change password to the same password
+    const changePasswordData = {
+      currentPassword: "password123",
+      newPassword: "password123",
+    };
+
+    const response = await request(app)
+      .post("/api/auth/change-password")
+      .set("Authorization", `Bearer ${token}`)
+      .send(changePasswordData)
+      .expect(400);
+
+    expect(response.body).toHaveProperty(
+      "message",
+      "New password must be different from current password"
+    );
+  });
+
+  it("should return 401 for unauthenticated user", async () => {
+    // Test unauthenticated request
+    const changePasswordData = {
+      currentPassword: "oldPassword123",
+      newPassword: "newPassword456",
+    };
+
+    const response = await request(app)
+      .post("/api/auth/change-password")
+      .send(changePasswordData)
+      .expect(401);
+
+    expect(response.body).toHaveProperty(
+      "message",
+      "Unauthorized: No token provided"
+    );
+  });
+
+  it("should return 401 for invalid token", async () => {
+    // Test invalid token
+    const changePasswordData = {
+      currentPassword: "oldPassword123",
+      newPassword: "newPassword456",
+    };
+
+    const response = await request(app)
+      .post("/api/auth/change-password")
+      .set("Authorization", "Bearer invalidtoken")
+      .send(changePasswordData)
+      .expect(401);
+
+    expect(response.body).toHaveProperty(
+      "message",
+      "Unauthorized: Invalid token"
+    );
+  });
+
+  it("should return 400 for missing currentPassword", async () => {
+    // Test missing currentPassword
+    // Register a user
+    const userData = {
+      username: "testuser",
+      email: "test@example.com",
+      password: "password123",
+      fullName: {
+        firstName: "Test",
+        lastName: "User",
+      },
+    };
+
+    await request(app).post("/api/auth/register").send(userData).expect(201);
+
+    // Login to get token
+    const loginResponse = await request(app)
+      .post("/api/auth/login")
+      .send({ email: userData.email, password: userData.password })
+      .expect(200);
+
+    const token = loginResponse.body.token;
+
+    // Try to change password without currentPassword
+    const changePasswordData = {
+      newPassword: "newPassword456",
+    };
+
+    const response = await request(app)
+      .post("/api/auth/change-password")
+      .set("Authorization", `Bearer ${token}`)
+      .send(changePasswordData)
+      .expect(400);
+
+    expect(response.body).toHaveProperty("errors");
+    expect(response.body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ msg: "Current password is required" }),
+      ])
+    );
+  });
+
+  it("should return 400 for missing newPassword", async () => {
+    // Test missing newPassword
+    // Register a user
+    const userData = {
+      username: "testuser",
+      email: "test@example.com",
+      password: "password123",
+      fullName: {
+        firstName: "Test",
+        lastName: "User",
+      },
+    };
+
+    await request(app).post("/api/auth/register").send(userData).expect(201);
+
+    // Login to get token
+    const loginResponse = await request(app)
+      .post("/api/auth/login")
+      .send({ email: userData.email, password: userData.password })
+      .expect(200);
+
+    const token = loginResponse.body.token;
+
+    // Try to change password without newPassword
+    const changePasswordData = {
+      currentPassword: "password123",
+    };
+
+    const response = await request(app)
+      .post("/api/auth/change-password")
+      .set("Authorization", `Bearer ${token}`)
+      .send(changePasswordData)
+      .expect(400);
+
+    expect(response.body).toHaveProperty("errors");
+    expect(response.body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ msg: "New password is required" }),
+      ])
+    );
+  });
+
+  it("should return 400 for newPassword less than 6 characters", async () => {
+    // Test newPassword too short
+    // Register a user
+    const userData = {
+      username: "testuser",
+      email: "test@example.com",
+      password: "password123",
+      fullName: {
+        firstName: "Test",
+        lastName: "User",
+      },
+    };
+
+    await request(app).post("/api/auth/register").send(userData).expect(201);
+
+    // Login to get token
+    const loginResponse = await request(app)
+      .post("/api/auth/login")
+      .send({ email: userData.email, password: userData.password })
+      .expect(200);
+
+    const token = loginResponse.body.token;
+
+    // Try to change password with short newPassword
+    const changePasswordData = {
+      currentPassword: "password123",
+      newPassword: "12345", // Only 5 characters
+    };
+
+    const response = await request(app)
+      .post("/api/auth/change-password")
+      .set("Authorization", `Bearer ${token}`)
+      .send(changePasswordData)
+      .expect(400);
+
+    expect(response.body).toHaveProperty("errors");
+    expect(response.body.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          msg: "New password must be at least 6 characters long",
+        }),
+      ])
+    );
+  });
+
+  it("should return 401 for blacklisted token", async () => {
+    // Test blacklisted token (after logout)
+    // Register a user
+    const userData = {
+      username: "testuser",
+      email: "test@example.com",
+      password: "password123",
+      fullName: {
+        firstName: "Test",
+        lastName: "User",
+      },
+    };
+
+    await request(app).post("/api/auth/register").send(userData).expect(201);
+
+    // Login to get token
+    const loginResponse = await request(app)
+      .post("/api/auth/login")
+      .send({ email: userData.email, password: userData.password })
+      .expect(200);
+
+    const token = loginResponse.body.token;
+
+    // Logout to blacklist the token
+    await request(app)
+      .get("/api/auth/logout")
+      .set("Authorization", `Bearer ${token}`)
+      .expect(200);
+
+    // Try to change password with blacklisted token
+    const changePasswordData = {
+      currentPassword: "password123",
+      newPassword: "newPassword456",
+    };
+
+    const response = await request(app)
+      .post("/api/auth/change-password")
+      .set("Authorization", `Bearer ${token}`)
+      .send(changePasswordData)
+      .expect(401);
+
+    expect(response.body).toHaveProperty(
+      "message",
+      "Unauthorized: Token has been revoked"
+    );
+  });
+});

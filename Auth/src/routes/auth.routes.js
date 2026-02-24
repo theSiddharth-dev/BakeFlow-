@@ -40,4 +40,13 @@ router.delete(
   Authcontroller.removeAddress // Call remove address controller
 );
 
+// Change password route
+router.post(
+  // Define POST route for changing password
+  "/change-password", // Route path
+  authMiddleware.authMiddleware, // Requires auth
+  validators.changePasswordValidation, // Apply validation
+  Authcontroller.changePassword // Call change password controller
+);
+
 module.exports = router; // Export the router

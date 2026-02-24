@@ -95,9 +95,27 @@ const addUserAddressValidation = [
   respondValidationErrors, // Include error response middleware
 ];
 
+const changePasswordValidation = [
+  // Array of validation rules for changing password
+  body("currentPassword") // Validate current password
+    .notEmpty() // Cannot be empty
+    .withMessage("Current password is required") // Error message
+    .isString() // Must be a string
+    .withMessage("Current password must be a string"), // Error message
+  body("newPassword") // Validate new password
+    .notEmpty() // Cannot be empty
+    .withMessage("New password is required") // Error message
+    .isLength({ min: 6 }) // Minimum length 6
+    .withMessage("New password must be at least 6 characters long") // Error message
+    .isString() // Must be a string
+    .withMessage("New password must be a string"), // Error message
+  respondValidationErrors, // Include error response middleware
+];
+
 module.exports = {
   // Export validation arrays
   registerUserValidation,
   loginUserValidation,
   addUserAddressValidation,
+  changePasswordValidation,
 };

@@ -49,7 +49,7 @@ const registerUser = async (req, res) => {
         fullName: user.fullName,
       }),
       publishtoQueue("AUTH_SELLER_DASHBOARD.USER_CREATED", user),
-    ])
+    ]);
 
     const token = jwt.sign(
       {
@@ -100,8 +100,9 @@ const loginUser = async (req, res) => {
 
     if (!isPasswordValid) {
       // If password invalid
-      return res.status(401).json({ message: "Invalid or email password" }); // Return unauthorized (note: typo in message)
+      return res.status(401).json({ message: "Invalid password" });
     }
+
 
     const token = jwt.sign(
       // Create JWT token
@@ -115,9 +116,7 @@ const loginUser = async (req, res) => {
       },
       process.env.JWT_SECRET, // Secret
       { expiresIn: "1d" }, // Expires in 1 day
-
     );
-
 
     res.status(200).json({
       // Return success
@@ -157,10 +156,10 @@ const logoutUser = async (req, res) => {
     const token =
       authHeader && authHeader.startsWith("Bearer ")
         ? authHeader.split(" ")[1]
-        :null
+        : null;
 
     // Blacklist the token in Redis
-    if(token){
+    if (token) {
       // If token exists
       await redis.set(`blacklist_${token}`, "true", "EX", 24 * 60 * 60); // Set in Redis with 24h expiry
     }
@@ -291,6 +290,58 @@ const removeAddress = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  // Define async function for changing password
+  try {
+    // Try block for error handling
+    const { currentPassword, newPassword } = req.body; // Destructure passwords from request body
+    const userId = req.user.id; // Get user ID from authenticated request
+
+    // Find user and include password field (which is not selected by default)
+    const user = await userModel.findById(userId).select("+password");
+
+    if (!user) {
+      // If user not found
+      return res.status(404).json({ message: "User not found" }); // Return not found
+    }
+
+    // Verify current password using bcrypt
+    const isCurrentPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
+
+    if (!isCurrentPasswordValid) {
+      // If current password is incorrect
+      return res.status(401).json({ message: "Current password is incorrect" }); // Return unauthorized
+    }
+
+    // Check if new password is same as current password
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return res.status(400).json({
+        message: "New password must be different from current password",
+      });
+    }
+
+    // Hash the new password
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10); // Hash with salt rounds 10
+
+    // Update password in database
+    user.password = hashedNewPassword;
+    await user.save(); // Save the user
+
+    res.status(200).json({
+      // Return success response
+      message: "Password changed successfully",
+    });
+  } catch (err) {
+    // Catch block for errors
+    console.error("Error in changePassword:", err); // Log error
+    res.status(500).json({ message: "Internal server error" }); // Return server error
+  }
+};
+
 module.exports = {
   // Export the controller functions
   registerUser,
@@ -300,4 +351,5 @@ module.exports = {
   getAddresses,
   addAddress,
   removeAddress,
+  changePassword,
 };
