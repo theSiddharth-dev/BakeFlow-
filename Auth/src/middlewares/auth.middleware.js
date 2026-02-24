@@ -2,8 +2,12 @@ const jwt = require("jsonwebtoken");
 const redis = require("../db/Redis");
 
 const authMiddleware = async (req, res, next) => {
-  
-  const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.startsWith("Bearer ") ? req.headers.authorization.split(" ")[1] : null);
+  // Extract token from Authorization: Bearer <token> header
+  const authHeader = req.headers.authorization;
+  const token =
+    authHeader && authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : null;
 
   if (!token) {
     return res.status(401).json({ message: "Unauthorized: No token provided" });

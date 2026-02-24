@@ -13,7 +13,7 @@ const upload = multer({ storage: storage });
 // POST /api/products/
 router.post(
   "/",
-  createAuthMiddleware(["admin", "owner"]),
+  createAuthMiddleware(["owner"]),
   upload.array("images", 5),
   validateProduct,
   productController.createProduct

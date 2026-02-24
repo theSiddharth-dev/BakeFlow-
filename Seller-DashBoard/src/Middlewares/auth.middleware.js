@@ -2,10 +2,12 @@ const jwt = require("jsonwebtoken");
 
 const createAuthMiddleware = (roles = ["user"]) => {
   return function authMiddleware(req, res, next) {
-    // Safely read token from cookies or Authorization header
+    // Extract token from Authorization: Bearer <token> header
+    const authHeader = req.headers.authorization;
     const token =
-      (req.cookies && req.cookies.token) ||
-      req.headers.authorization?.split(" ")[1];
+      authHeader && authHeader.startsWith("Bearer ")
+        ? authHeader.split(" ")[1]
+        : null;
 
     if (!token) {
       return res.status(401).json({ error: "Unauthorized: No token provided" });
