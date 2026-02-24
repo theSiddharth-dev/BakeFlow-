@@ -8,18 +8,15 @@ const createAuthMiddleware = (roles = ["user"]) => {
       req.headers.authorization?.split(" ")[1];
 
     if (!token) {
-      return res.status(401).json({ message: "Unauthorized User" });
+      return res.status(401).json({ message: "Unauthorized User: no token provided" });
     }
+
     try {
-      // Use same default secret as tests if JWT_SECRET is not provided
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET || "test-secret-key",
-      );
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       if (!roles.includes(decoded.role)) {
-        return res.status(401).json({
-          message: "Forbidden : Insufficient permissions.",
+        return res.status(403).json({
+          message: "Forbidden: Insufficient permissions.",
         });
       }
 

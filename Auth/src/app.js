@@ -23,6 +23,7 @@ app.get("/", (req, res) => {
     message: "Auth service is running ",
   });
 });
+
 app.use("/api/auth", authRoutes);
 
 module.exports = app;
