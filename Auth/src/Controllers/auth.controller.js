@@ -1,7 +1,7 @@
 const userModel = require("../models/user.model");
-const bcrypt = require("bcrypt"); 
-const jwt = require("jsonwebtoken"); 
-const redis = require("../db/Redis"); 
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const redis = require("../db/Redis");
 const { publishtoQueue } = require("../Broker/Broker");
 
 const registerUser = async (req, res) => {
@@ -40,13 +40,13 @@ const registerUser = async (req, res) => {
       role: role || "user", // Set role, default to 'user'
     });
 
-    // put the data Notification Queue 
+    // put the data Notification Queue
     await Promise.all([
       publishtoQueue("AUTH_NOTIFICATION.USER_CREATED", {
-      id: user._id,
-      username: user.username,
-      email: user.email,
-      fullName: user.fullName,
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
       }),
       publishtoQueue("AUTH_SELLER_DASHBOARD.USER_CREATED", user),
     ])
@@ -59,12 +59,10 @@ const registerUser = async (req, res) => {
         role: user.role,
       },
       process.env.JWT_SECRET, // Secret key from environment
-      { expiresIn: "1d" } // Expires in 1 day
+      { expiresIn: "1d" }, // Expires in 1 day
     );
 
     res.cookie("token", token, {
-      // Set token in cookie
-      httpOnly: true, // Prevent access via JavaScript
       secure: true,
       sameSite: "none", // Allow cross-site cookies
       maxAge: 24 * 60 * 60 * 1000, // Expires in 24 hours
@@ -82,11 +80,9 @@ const registerUser = async (req, res) => {
         addresss: user.address,
       },
     });
-
-
   } catch (err) {
     // Catch block for errors
-    console.error("Error in registration:",err); // Log error (note: missing space after colon)
+    console.error("Error in registration:", err); // Log error (note: missing space after colon)
     res.status(500).json({ message: "internal server error" }); // Return server error
   }
 };
@@ -124,12 +120,11 @@ const loginUser = async (req, res) => {
         fullName: user.fullName,
       },
       process.env.JWT_SECRET, // Secret
-      { expiresIn: "1d" } // Expires in 1 day
+      { expiresIn: "1d" }, // Expires in 1 day
     );
 
     res.cookie("token", token, {
       // Set token cookie
-      httpOnly: true,
       secure: true,
       sameSite: "none",
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
@@ -138,6 +133,7 @@ const loginUser = async (req, res) => {
     res.status(200).json({
       // Return success
       message: "Login successful",
+      token, // Return token for Bearer auth across services
       user: {
         // User data
         id: user._id,
@@ -167,7 +163,12 @@ const logoutUser = async (req, res) => {
   // Define async function for logout
   try {
     // Try block
-    const token = req.cookies.token; // Get token from cookies
+    // Extract token from Bearer header or cookie
+    const authHeader = req.headers.authorization;
+    const token =
+      authHeader && authHeader.startsWith("Bearer ")
+        ? authHeader.split(" ")[1]
+        : req.cookies?.token;
 
     // Blacklist the token in Redis
     if (token) {
@@ -241,7 +242,7 @@ const addAddress = async (req, res) => {
           },
         },
       },
-      { new: true } // Return updated document
+      { new: true }, // Return updated document
     );
 
     if (!user) {
@@ -277,7 +278,7 @@ const removeAddress = async (req, res) => {
           addresses: { _id: addressId }, // Pull matching address
         },
       },
-      { new: true } // Return updated document
+      { new: true }, // Return updated document
     );
 
     if (!user) {
@@ -287,7 +288,7 @@ const removeAddress = async (req, res) => {
 
     const addressIndex = user.address.findIndex(
       // Find index of address
-      (addr) => addr._id.toString() === addressId // Match by ID
+      (addr) => addr._id.toString() === addressId, // Match by ID
     );
     if (addressIndex === -1) {
       // If not found
