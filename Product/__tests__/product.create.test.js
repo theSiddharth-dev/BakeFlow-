@@ -64,8 +64,11 @@ jest.mock("../src/Controllers/Product.controller", () => ({
   getProducts: jest.fn(),
   getProductById: jest.fn(),
   updateProduct: jest.fn(),
+<<<<<<< HEAD
   reserveInventory: jest.fn(),
   releaseInventory: jest.fn(),
+=======
+>>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
   deleteProduct: jest.fn(),
   getProductsByOwner: jest.fn(),
 }));

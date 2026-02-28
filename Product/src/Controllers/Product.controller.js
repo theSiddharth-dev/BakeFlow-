@@ -1,6 +1,7 @@
 const productModel = require("../models/product.model");
 const { uploadImages } = require("../services/imagekit.service");
 const mongoose = require("mongoose");
+<<<<<<< HEAD
 const { publishtoQueue } = require("./../Broker/Broker");
 
 const createProduct = async (req, res) => {
@@ -14,6 +15,13 @@ const createProduct = async (req, res) => {
       stock,
     } = req.body;
 
+=======
+const {publishtoQueue} = require('./../Broker/Broker')
+
+const createProduct = async (req, res) => {
+  try {
+    const { title, description, priceAmount, priceCurrency = "INR" } = req.body;
+>>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
     const files = req.files;
 
     if (!title || !priceAmount) {
@@ -38,13 +46,17 @@ const createProduct = async (req, res) => {
       description,
       price,
       owner,
+<<<<<<< HEAD
       category,
       stock,
+=======
+>>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
       image: imageUploads,
     });
 
     await product.save();
 
+<<<<<<< HEAD
     await publishtoQueue("PRODUCT_SELLER_DASHBOARD.PRODUCT_CREATED", product);
 
     // await publishtoQueue("PRODUCT_NOTIFICATION.PRODUCT_CREATED",{
@@ -55,6 +67,19 @@ const createProduct = async (req, res) => {
     // })
 
     res.status(201).json(product);
+=======
+    await publishtoQueue("PRODUCT_SELLER_DASHBOARD.PRODUCT_CREATED", product)
+
+    await publishtoQueue("PRODUCT_NOTIFICATION.PRODUCT_CREATED",{
+      email: req.user.email,
+      productId: product._id,
+      productName : product.title,
+      ownerId: owner
+    })
+
+    res.status(201).json(product);
+    
+>>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -62,6 +87,7 @@ const createProduct = async (req, res) => {
 
 const getProducts = async (req, res) => {
   try {
+<<<<<<< HEAD
     const { q, minprice, maxprice, skip = 0, limit = 20 } = req.query;
 
     const filter = {};
@@ -70,6 +96,12 @@ const getProducts = async (req, res) => {
       filter.$text = { $search: q };
     }
 
+=======
+    const { e, minprice, maxprice, skip = 0, limit = 20 } = req.query;
+
+    const filter = {};
+
+>>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
     if (minprice) {
       filter["price.amount"] = {
         ...filter["price.amount"],
@@ -125,6 +157,7 @@ const updateProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
+<<<<<<< HEAD
     const allowedUpdates = ["title", "description", "price"];
 
     for (const key of Object.keys(req.body)) {
@@ -143,6 +176,44 @@ const updateProduct = async (req, res) => {
     }
 
     const updatedProduct = await product.save();
+=======
+    const allowedUpdates = [
+      "title",
+      "description",
+      "priceAmount",
+      "priceCurrency",
+      "stock"
+    ];
+
+    const updates = {};
+
+    if (req.body.title !== undefined) {
+      updates.title = req.body.title;
+    }
+    if (req.body.description !== undefined) {
+      updates.description = req.body.description;
+    }
+    if (req.body.priceAmount !== undefined) {
+      updates.price = {
+        amount: Number(req.body.priceAmount),
+        currency: product.price.currency || "INR",
+      };
+    }
+    if (req.body.priceCurrency !== undefined) {
+      updates.price = {
+        amount: product.price.amount,
+        currency: req.body.priceCurrency,
+      };
+    }
+
+    if (req.body.stock !== undefined) {
+      updates.stock = req.body.stock;
+    }
+
+    const updatedProduct = await productModel.findByIdAndUpdate(id, updates, {
+      new: true,
+    });
+>>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
 
     return res.status(200).json({ product: updatedProduct });
   } catch (error) {
@@ -150,6 +221,7 @@ const updateProduct = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
 const validateInventoryItems = (items = []) => {
   if (!Array.isArray(items) || items.length === 0) {
     return "Inventory items are required";
@@ -253,6 +325,8 @@ const releaseInventory = async (req, res) => {
   }
 };
 
+=======
+>>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
 const deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
@@ -261,32 +335,47 @@ const deleteProduct = async (req, res) => {
       return res.status(400).json({ message: "Invalid product id" });
     }
 
+<<<<<<< HEAD
     // 1️⃣ Find product first (don't filter by owner here)
     const product = await productModel.findById(id);
+=======
+    const product = await productModel.findOne({ _id: id, owner: req.user.id });
+>>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
 
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
 
+<<<<<<< HEAD
     // 2️⃣ Permission check
     const isProductOwner = product.owner.toString() === req.user.id;
     const isOwnerRole = req.user.role === "owner";
 
     if (!isProductOwner && !isOwnerRole) {
+=======
+    if (!product.owner.toString() != req.user.id) {
+>>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
       return res
         .status(403)
         .json({ message: "Forbidden: You can only delete your own products." });
     }
 
+<<<<<<< HEAD
     // 3️⃣ Delete
+=======
+>>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
     await productModel.findByIdAndDelete(id);
 
     return res.status(200).json({ message: "Product deleted successfully" });
   } catch (error) {
+<<<<<<< HEAD
     console.error("Delete product error:", error);
     return res
       .status(500)
       .json({ message: "Server error while deleting product" });
+=======
+    res.status(500).json({ error: error.message });
+>>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
   }
 };
 
@@ -310,8 +399,11 @@ module.exports = {
   getProducts,
   getProductById,
   updateProduct,
+<<<<<<< HEAD
   reserveInventory,
   releaseInventory,
+=======
+>>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
   deleteProduct,
   getProductsByOwner,
 };

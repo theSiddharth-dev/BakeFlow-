@@ -8,11 +8,17 @@ const app = express();
 app.use(
   cors({
     origin: [
+<<<<<<< HEAD
           "http://localhost:5173",
           "https://product-service-58x4.onrender.com/"
         ],
         accessControlAllowCredentials: true,  
         credentials: true,
+=======
+          "https://product-service-58x4.onrender.com/"
+        ],
+        accessControlAllowCredentials: true,        credentials: true,
+>>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
   }),
 );
 app.use(express.json());
