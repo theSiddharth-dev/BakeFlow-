@@ -39,13 +39,10 @@ const loginUserValidation = [
   // Array of validation rules for user login
   body("email").optional().isEmail().withMessage("Invalid email address"), // Email optional, must be valid email
   body("username").optional().isString().withMessage("Invalid username"), // Username optional, must be string
-<<<<<<< HEAD
   body("role")
     .optional()
     .isIn(["user", "owner"])
     .withMessage("Role must be either 'user' or 'owner'"),
-=======
->>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
   body("password") // Validate password
     .isLength({ min: 6 }) // Minimum length 6
     .notEmpty() // Cannot be empty

@@ -25,11 +25,7 @@ const registerUser = async (req, res) => {
     if (isUserAlreadyexist) {
       // If user exists
       return res // Return error response
-<<<<<<< HEAD
         .status(409)
-=======
-        .status(400)
->>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
         .json({ message: "Username or email already exists" });
     }
 
@@ -45,7 +41,6 @@ const registerUser = async (req, res) => {
     });
 
     // put the data Notification Queue
-<<<<<<< HEAD
     // await Promise.all([
     //   publishtoQueue("AUTH_NOTIFICATION.USER_CREATED", {
     //     id: user._id,
@@ -55,17 +50,6 @@ const registerUser = async (req, res) => {
     //   }),
     //   publishtoQueue("AUTH_SELLER_DASHBOARD.USER_CREATED", user),
     // ]);
-=======
-    await Promise.all([
-      publishtoQueue("AUTH_NOTIFICATION.USER_CREATED", {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        fullName: user.fullName,
-      }),
-      publishtoQueue("AUTH_SELLER_DASHBOARD.USER_CREATED", user),
-    ]);
->>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
 
     const token = jwt.sign(
       {
@@ -101,11 +85,7 @@ const loginUser = async (req, res) => {
   // Define async function for user login
   try {
     // Try block
-<<<<<<< HEAD
     const { username, email, password, role } = req.body; // Destructure login data
-=======
-    const { username, email, password } = req.body; // Destructure login data
->>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
 
     const user = await userModel // Find user by username or email
       .findOne({ $or: [{ username }, { email }] })
@@ -123,7 +103,6 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: "Invalid password" });
     }
 
-<<<<<<< HEAD
     if (role && user.role !== role) {
       return res.status(403).json({
         message:
@@ -132,8 +111,6 @@ const loginUser = async (req, res) => {
             : "Owner accounts must login from the owner login page",
       });
     }
-=======
->>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
 
     const token = jwt.sign(
       // Create JWT token

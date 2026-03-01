@@ -16,11 +16,7 @@ router.post(
   createAuthMiddleware(["owner"]),
   upload.array("images", 5),
   validateProduct,
-<<<<<<< HEAD
   productController.createProduct,
-=======
-  productController.createProduct
->>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
 );
 
 // GET /api/products
@@ -30,25 +26,21 @@ router.get("/", productController.getProducts);
 router.get(
   "/owner",
   createAuthMiddleware(["owner"]),
-<<<<<<< HEAD
   productController.getProductsByOwner,
 );
 
 // POST /api/products/inventory/reserve
 router.post(
   "/inventory/reserve",
-  createAuthMiddleware(["user", "owner", "admin"]),
+  createAuthMiddleware(["user", "owner"]),
   productController.reserveInventory,
 );
 
 // POST /api/products/inventory/release
 router.post(
   "/inventory/release",
-  createAuthMiddleware(["user", "owner", "admin"]),
+  createAuthMiddleware(["user", "owner"]),
   productController.releaseInventory,
-=======
-  productController.getProductsByOwner
->>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
 );
 
 // GET /api/products/:id
@@ -58,25 +50,14 @@ router.get("/:id", productController.getProductById);
 router.patch(
   "/:id",
   createAuthMiddleware(["owner"]),
-<<<<<<< HEAD
   productController.updateProduct,
-=======
-  productController.updateProduct
->>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
-);
 
-// DELETE /api/products/:id
+)
+
 router.delete(
   "/:id",
   createAuthMiddleware(["owner"]),
-<<<<<<< HEAD
   productController.deleteProduct,
 );
 
 module.exports = router;
-=======
-  productController.deleteProduct
-);
-
-module.exports = router;
->>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050

@@ -1,7 +1,6 @@
 const axios = require("axios");
 const mongoose = require("mongoose");
 const orderModel = require("../models/order.model");
-<<<<<<< HEAD
 const { publishtoQueue } = require("./../Broker/Broker");
 
 const mapInventoryItems = (items = []) => {
@@ -10,9 +9,6 @@ const mapInventoryItems = (items = []) => {
     quantity: Number(item.quantity),
   }));
 };
-=======
-const {publishtoQueue} = require('./../Broker/Broker')
->>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
 
 const createOrder = async (req, res) => {
   const user = req.user;
@@ -36,15 +32,9 @@ const createOrder = async (req, res) => {
         .status(400)
         .json({ message: "Cart is empty. Cannot create order." });
     }
-<<<<<<< HEAD
-    // http://localhost:3001/api/products/${item.productId}
-=======
-// http://localhost:3001/api/products/${item.productId}
->>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
-
-    const products = await Promise.all(
-      cartResponse.data.items.map(async (item) => {
-        const resp = await axios.get(
+    
+      try{
+        const products = await axios.get(
           `${process.env.PRODUCT_SERVICE_URL}/${item.productId}`,
           {
             headers: {
@@ -52,9 +42,15 @@ const createOrder = async (req, res) => {
             },
           },
         );
-        return resp.data.product;
-      }),
-    );
+        return res.data.product;
+        
+      } catch(err){
+        console.log(`Failed to fetch product ${item.productId} details:`, err.message);
+        return res.status(500).json({
+          message: `Failed to fetch product ${item.productId} details`,
+          error: err.message,})
+      }
+
 
     console.log(products);
 
@@ -95,7 +91,7 @@ const createOrder = async (req, res) => {
       };
     });
 
-<<<<<<< HEAD
+
     const inventoryItems = mapInventoryItems(cartResponse.data.items);
 
     await axios.post(
@@ -108,10 +104,9 @@ const createOrder = async (req, res) => {
       },
     );
 
-    let order;
 
     try {
-      order = await orderModel.create({
+     const order = await orderModel.create({
         user: user.id,
         items: orderItems,
         status: "PENDING",
@@ -144,7 +139,7 @@ const createOrder = async (req, res) => {
 
     // publish order created event to broker for seller dashboard
     await publishtoQueue("ORDER_SELLER_DASHBOARD.ORDER_CREATED", order);
-=======
+
     const order = await orderModel.create({
       user: user.id,
       items: orderItems,
@@ -158,14 +153,13 @@ const createOrder = async (req, res) => {
 
     // publish order created event to broker for seller dashboard
     await publishtoQueue("ORDER_SELLER_DASHBOARD.ORDER_CREATED",order)
->>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
+
 
     res.status(201).json({
       message: "Order created Successfully",
       order: order,
     });
   } catch (err) {
-<<<<<<< HEAD
     console.log(err);
 
     if (err.response?.status) {
@@ -174,17 +168,16 @@ const createOrder = async (req, res) => {
       });
     }
 
-=======
     console.log(err)
->>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
+
     res.status(500).json({
       message: "Internal server error",
       error: err.message,
     });
-  }
-};
+  };
+}
 
-const getMyOrder = async (req, res) => {
+  const getMyOrder = async (req, res) => {
   const user = req.user;
 
   if (!user) {
@@ -376,10 +369,10 @@ const buildPaymentSummary = (order) => {
 const cancelOrderById = async (req, res) => {
   const user = req.user;
   const orderId = req.params.id;
-<<<<<<< HEAD
+
   const token = req.cookies?.token || req.headers?.authorization?.split(" ")[1];
-=======
->>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
+
+
 
   // Validate if orderId is a valid MongoDB ObjectId
   if (!mongoose.Types.ObjectId.isValid(orderId)) {
@@ -436,7 +429,7 @@ const cancelOrderById = async (req, res) => {
       });
     }
 
-<<<<<<< HEAD
+
     const inventoryItems = order.items.map((item) => ({
       productId: item.product?.toString(),
       quantity: Number(item.quantity),
@@ -476,11 +469,10 @@ const cancelOrderById = async (req, res) => {
 
       throw saveError;
     }
-=======
+
     // Update order status to CANCELLED
     order.status = "CANCELLED";
     await order.save();
->>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
 
     res.status(200).json({
       message: "Order cancelled successfully",
@@ -494,10 +486,7 @@ const cancelOrderById = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
 // Update order Address Controller
 const updateOrderAddress = async (req, res) => {
   const user = req.user;

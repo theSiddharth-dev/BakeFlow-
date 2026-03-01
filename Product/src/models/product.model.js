@@ -33,13 +33,10 @@ const productSchema = new mongoose.Schema({
   stock:{
     type:Number,
     default:0
-<<<<<<< HEAD
   },
   category:{
     type:String,
     enum:["Breads", "Cakes", "Pastries", "Cookies", "Seasonal", "Beverages"]
-=======
->>>>>>> 67354662e4367294a6848e3b2f2e0eb4582a3050
   }
 });
 
