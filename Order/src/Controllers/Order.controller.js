@@ -3,6 +3,8 @@ const mongoose = require("mongoose");
 const orderModel = require("../models/order.model");
 const { publishtoQueue } = require("./../Broker/Broker");
 
+const TAX_RATE = 0.18;
+
 const mapInventoryItems = (items = []) => {
   return items.map((item) => ({
     productId: item.productId || item.product?.toString(),
@@ -14,68 +16,58 @@ const createOrder = async (req, res) => {
   const user = req.user;
   const token = req.cookies?.token || req.headers?.authorization?.split(" ")[1];
 
-  // http://localhost:3002/api/cart/items
-
   try {
-    // fetch user cart from cart service
+    // 1️⃣ Fetch cart items
     const cartResponse = await axios.get(
       `${process.env.CART_SERVICE_URL}/items`,
       {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       },
     );
 
-    if (cartResponse.data.items.length === 0) {
+    const cartItems = cartResponse.data.items;
+
+    if (!cartItems || cartItems.length === 0) {
       return res
         .status(400)
         .json({ message: "Cart is empty. Cannot create order." });
     }
-    
-      try{
-        const products = await axios.get(
-          `${process.env.PRODUCT_SERVICE_URL}/${item.productId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-        return res.data.product;
-        
-      } catch(err){
-        console.log(`Failed to fetch product ${item.productId} details:`, err.message);
-        return res.status(500).json({
-          message: `Failed to fetch product ${item.productId} details`,
-          error: err.message,})
-      }
 
+    // 2️⃣ Fetch all product details
+    const productRequests = cartItems.map((item) =>
+      axios.get(`${process.env.PRODUCT_SERVICE_URL}/${item.productId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      }),
+    );
 
-    console.log(products);
+    const productResponses = await Promise.all(productRequests);
+    const products = productResponses.map((res) => res.data.product);
 
     let priceAmount = 0;
 
-    // Check stock before creating order items
-    const insufficient = cartResponse.data.items.find((item) => {
+    // 3️⃣ Check stock
+    for (const item of cartItems) {
       const product = products.find(
-        (p) => p._id?.toString() === item.productId?.toString(),
+        (p) => p._id.toString() === item.productId.toString(),
       );
-      return product && product.stock < item.quantity;
-    });
 
-    if (insufficient) {
-      const product = products.find(
-        (p) => p._id?.toString() === insufficient.productId?.toString(),
-      );
-      return res.status(400).json({
-        message: `Product ${product?.title || ""} has insufficient stock`,
-      });
+      if (!product) {
+        return res.status(404).json({
+          message: `Product not found: ${item.productId}`,
+        });
+      }
+
+      if (product.stock < item.quantity) {
+        return res.status(400).json({
+          message: `Product ${product.title} has insufficient stock`,
+        });
+      }
     }
 
-    const orderItems = cartResponse.data.items.map((item) => {
+    // 4️⃣ Create order items
+    const orderItems = cartItems.map((item) => {
       const product = products.find(
-        (p) => p._id?.toString() === item.productId?.toString(),
+        (p) => p._id.toString() === item.productId.toString(),
       );
 
       const itemTotal = product.price.amount * item.quantity;
@@ -88,96 +80,82 @@ const createOrder = async (req, res) => {
           amount: itemTotal,
           currency: product.price.currency,
         },
+        costPrice: {
+          amount:
+            Number(product.costPrice?.amount || 0) * Number(item.quantity),
+          currency: product.costPrice?.currency || product.price.currency,
+        },
       };
     });
 
+    const taxAmount = Math.round(priceAmount * TAX_RATE);
+    const totalAmount = priceAmount + taxAmount;
 
-    const inventoryItems = mapInventoryItems(cartResponse.data.items);
+    const inventoryItems = cartItems.map((item) => ({
+      productId: item.productId,
+      quantity: item.quantity,
+    }));
 
+    // 5️⃣ Reserve inventory
     await axios.post(
       `${process.env.PRODUCT_SERVICE_URL}/inventory/reserve`,
       { items: inventoryItems },
       {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       },
     );
 
+    let order;
 
     try {
-     const order = await orderModel.create({
+      // 6️⃣ Create order (ONLY ONCE)
+      order = await orderModel.create({
         user: user.id,
         items: orderItems,
         status: "PENDING",
         totalPrice: {
-          amount: priceAmount,
+          amount: totalAmount,
           currency: "INR",
         },
         shippingAddress: req.body.shippingAddress,
       });
     } catch (orderCreateError) {
-      try {
-        await axios.post(
-          `${process.env.PRODUCT_SERVICE_URL}/inventory/release`,
-          { items: inventoryItems },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-      } catch (releaseError) {
-        console.log(
-          "Inventory release failed after order create error",
-          releaseError.message,
-        );
-      }
+      // 7️⃣ Release inventory if order fails
+      await axios.post(
+        `${process.env.PRODUCT_SERVICE_URL}/inventory/release`,
+        { items: inventoryItems },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
       throw orderCreateError;
     }
 
-    // publish order created event to broker for seller dashboard
+    // 8️⃣ Publish event
     await publishtoQueue("ORDER_SELLER_DASHBOARD.ORDER_CREATED", order);
 
-    const order = await orderModel.create({
-      user: user.id,
-      items: orderItems,
-      status: "PENDING",
-      totalPrice: {
-        amount: priceAmount,
-        currency: "INR",
-      },
-      shippingAddress: req.body.shippingAddress,
-    });
-
-    // publish order created event to broker for seller dashboard
-    await publishtoQueue("ORDER_SELLER_DASHBOARD.ORDER_CREATED",order)
-
-
     res.status(201).json({
-      message: "Order created Successfully",
-      order: order,
+      message: "Order created successfully",
+      order,
     });
   } catch (err) {
     console.log(err);
 
     if (err.response?.status) {
       return res.status(err.response.status).json({
-        message: err.response?.data?.message || "Inventory operation failed",
+        message:
+          err.response?.data?.message || "Inventory or product service failed",
       });
     }
-
-    console.log(err)
 
     res.status(500).json({
       message: "Internal server error",
       error: err.message,
     });
-  };
-}
-
-  const getMyOrder = async (req, res) => {
+  }
+};
+const getMyOrder = async (req, res) => {
   const user = req.user;
 
   if (!user) {
@@ -287,11 +265,7 @@ const buildTimeline = (order) => {
   });
 
   // Add status-specific events based on current status
-  if (
-    order.status === "SHIPPED" ||
-    order.status === "DELIVERED" ||
-    order.status === "COMPLETED"
-  ) {
+  if (order.status === "SHIPPED") {
     timeline.push({
       status: "SHIPPED",
       timestamp: order.updatedAt,
@@ -299,7 +273,11 @@ const buildTimeline = (order) => {
     });
   }
 
-  if (order.status === "DELIVERED" || order.status === "COMPLETED") {
+  if (
+    order.status === "DELIVERED" ||
+    order.status === "COMPLETED" ||
+    order.status === "CONFIRMED"
+  ) {
     timeline.push({
       status: "DELIVERED",
       timestamp: order.updatedAt,
@@ -307,11 +285,12 @@ const buildTimeline = (order) => {
     });
   }
 
-  if (order.status === "COMPLETED") {
+  if (order.status === "COMPLETED" || order.status === "CONFIRMED") {
     timeline.push({
-      status: "COMPLETED",
+      status: order.status,
       timestamp: order.updatedAt,
-      message: "Order completed",
+      message:
+        order.status === "CONFIRMED" ? "Order confirmed" : "Order completed",
     });
   }
 
@@ -328,13 +307,14 @@ const buildTimeline = (order) => {
 
 // Helper function to build payment summary
 const buildPaymentSummary = (order) => {
-  const subtotal = order.totalPrice.amount;
+  const subtotal = order.items.reduce(
+    (sum, item) => sum + (item.price?.amount || 0),
+    0,
+  );
   const currency = order.totalPrice.currency;
 
-  // Calculate tax (if applicable) - example: 0% for now
-  const tax = 0;
+  const tax = Math.round(subtotal * TAX_RATE);
 
-  // Calculate shipping (if applicable) - example: 0 for now
   const shipping = 0;
 
   const total = subtotal + tax + shipping;
@@ -351,13 +331,10 @@ const buildPaymentSummary = (order) => {
             currency: currency,
           }
         : undefined,
-    shipping:
-      shipping > 0
-        ? {
-            amount: shipping,
-            currency: currency,
-          }
-        : undefined,
+    shipping: {
+      amount: shipping,
+      currency: currency,
+    },
     total: {
       amount: total,
       currency: currency,
@@ -371,8 +348,6 @@ const cancelOrderById = async (req, res) => {
   const orderId = req.params.id;
 
   const token = req.cookies?.token || req.headers?.authorization?.split(" ")[1];
-
-
 
   // Validate if orderId is a valid MongoDB ObjectId
   if (!mongoose.Types.ObjectId.isValid(orderId)) {
@@ -416,9 +391,9 @@ const cancelOrderById = async (req, res) => {
       });
     }
 
-    if (order.status === "COMPLETED") {
+    if (order.status === "COMPLETED" || order.status === "CONFIRMED") {
       return res.status(400).json({
-        message: "Order cannot be cancelled as it has already been completed",
+        message: `Order cannot be cancelled as it has already been ${order.status.toLowerCase()}`,
       });
     }
 
@@ -428,7 +403,6 @@ const cancelOrderById = async (req, res) => {
         message: "Order cannot be cancelled at this stage",
       });
     }
-
 
     const inventoryItems = order.items.map((item) => ({
       productId: item.product?.toString(),
@@ -486,7 +460,6 @@ const cancelOrderById = async (req, res) => {
   }
 };
 
-
 // Update order Address Controller
 const updateOrderAddress = async (req, res) => {
   const user = req.user;
@@ -534,9 +507,9 @@ const updateOrderAddress = async (req, res) => {
       });
     }
 
-    if (order.status === "COMPLETED") {
+    if (order.status === "COMPLETED" || order.status === "CONFIRMED") {
       return res.status(400).json({
-        message: "Cannot update address - Order has already been completed",
+        message: `Cannot update address - Order has already been ${order.status.toLowerCase()}`,
       });
     }
 
@@ -575,10 +548,64 @@ const updateOrderAddress = async (req, res) => {
   }
 };
 
+const completeOrderById = async (req, res) => {
+  const user = req.user;
+  const orderId = req.params.id;
+
+  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+    return res.status(400).json({
+      message: "Invalid order ID format",
+    });
+  }
+
+  try {
+    const order = await orderModel.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found",
+      });
+    }
+
+    if (order.user.toString() !== user.id) {
+      return res.status(403).json({
+        message: "Forbidden - You don't have access to this order",
+      });
+    }
+
+    if (order.status === "COMPLETED" || order.status === "CONFIRMED") {
+      return res.status(200).json({
+        message: `Order already ${order.status.toLowerCase()}`,
+        order,
+      });
+    }
+
+    if (order.status === "CANCELLED") {
+      return res.status(400).json({
+        message: "Cannot complete a cancelled order",
+      });
+    }
+
+    order.status = "CONFIRMED";
+    await order.save();
+
+    return res.status(200).json({
+      message: "Order confirmed successfully",
+      order,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      message: "Internal server error",
+      error: err.message,
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   getMyOrder,
   getOrderById,
   cancelOrderById,
   updateOrderAddress,
+  completeOrderById,
 };

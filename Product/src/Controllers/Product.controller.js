@@ -10,15 +10,17 @@ const createProduct = async (req, res) => {
       description,
       priceAmount,
       priceCurrency = "INR",
+      costPriceAmount,
+      costPriceCurrency = "INR",
       category,
       stock,
     } = req.body;
 
     const files = req.files || [];
 
-    if (!title || !priceAmount) {
+    if (!title || !priceAmount || costPriceAmount === undefined) {
       return res.status(400).json({
-        message: "title, priceAmount  are required",
+        message: "title, priceAmount and costPriceAmount are required",
       });
     }
 
@@ -29,6 +31,11 @@ const createProduct = async (req, res) => {
       currency: priceCurrency,
     };
 
+    const costPrice = {
+      amount: Number(costPriceAmount),
+      currency: costPriceCurrency,
+    };
+
     // Upload images to ImageKit
     const imageUploads = (await uploadImages(files)) || [];
 
@@ -37,6 +44,7 @@ const createProduct = async (req, res) => {
       title,
       description,
       price,
+      costPrice,
       owner,
       category,
       stock,
@@ -128,7 +136,7 @@ const updateProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    const allowedUpdates = ["title", "description", "price"];
+    const allowedUpdates = ["title", "description", "price", "costPrice"];
 
     for (const key of Object.keys(req.body)) {
       if (allowedUpdates.includes(key)) {
@@ -138,6 +146,16 @@ const updateProduct = async (req, res) => {
           }
           if (req.body.price.currency !== undefined) {
             product.price.currency = req.body.price.currency;
+          }
+        } else if (
+          key === "costPrice" &&
+          typeof req.body.costPrice === "object"
+        ) {
+          if (req.body.costPrice.amount !== undefined) {
+            product.costPrice.amount = Number(req.body.costPrice.amount);
+          }
+          if (req.body.costPrice.currency !== undefined) {
+            product.costPrice.currency = req.body.costPrice.currency;
           }
         } else {
           product[key] = req.body[key];

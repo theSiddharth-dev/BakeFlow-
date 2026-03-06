@@ -27,6 +27,12 @@ router.patch(
   OrderController.updateOrderAddress,
 );
 
+router.patch(
+  "/:id/complete",
+  createauthmiddleware(["user"]),
+  OrderController.completeOrderById,
+);
+
 router.get(
   "/:id",
   createauthmiddleware(["user", "owner"]),

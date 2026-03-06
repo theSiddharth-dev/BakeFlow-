@@ -348,7 +348,7 @@ describe("POST /api/orders/:id/cancel - Buyer initiated cancel", () => {
       expect(res.body.message).toMatch(/cannot.*cancel.*delivered/i);
     });
 
-    it("should return 400 if order is COMPLETED", async () => {
+    it("should return 400 if order is CONFIRMED", async () => {
       const userId = new mongoose.Types.ObjectId();
       const productId = new mongoose.Types.ObjectId();
       const token = generateToken(userId);
@@ -365,7 +365,7 @@ describe("POST /api/orders/:id/cancel - Buyer initiated cancel", () => {
             },
           },
         ],
-        status: "COMPLETED",
+        status: "CONFIRMED",
         totalPrice: {
           amount: 100,
           currency: "INR",
@@ -384,7 +384,7 @@ describe("POST /api/orders/:id/cancel - Buyer initiated cancel", () => {
         .set("Cookie", `token=${token}`);
 
       expect(res.status).toBe(400);
-      expect(res.body.message).toMatch(/cannot.*cancel.*completed/i);
+      expect(res.body.message).toMatch(/cannot.*cancel.*confirmed/i);
     });
   });
 

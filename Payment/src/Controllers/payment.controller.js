@@ -10,6 +10,9 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
+const CART_SERVICE_URL =
+  process.env.CART_SERVICE_URL || "http://localhost:3002/api/cart";
+
 const createPayment = async (req, res) => {
   const token = req.cookies?.token || req.headers?.authorization?.split(" ")[1];
 
@@ -26,13 +29,26 @@ const createPayment = async (req, res) => {
     );
 
     const price = orderResponse.data.order.totalPrice;
+    const amountInRupees = Number(price?.amount || 0);
+    const currency = price?.currency || "INR";
 
-    const order = await razorpay.orders.create(price);
+    if (!Number.isFinite(amountInRupees) || amountInRupees <= 0) {
+      return res.status(400).json({
+        message: "Invalid order amount",
+      });
+    }
+
+    const razorpayOrderPayload = {
+      amount: Math.round(amountInRupees * 100),
+      currency,
+    };
+
+    const order = await razorpay.orders.create(razorpayOrderPayload);
 
     const payment = await paymentModel.create({
       order: orderId,
       razorpayOrderId: order.id,
-      paymentMethod:order.paymentMethod,
+      paymentMethod: order.paymentMethod,
       user: req.user.id,
       price: {
         amount: order.amount,
@@ -42,13 +58,13 @@ const createPayment = async (req, res) => {
 
     await publishtoQueue("PAYMENT_SELLER_DASHBOARD.PAYMENT_CREATED", payment);
 
-    await publishtoQueue("PAYMENT_NOTIFICATION.PAYMENT_INITIATED",{
+    await publishtoQueue("PAYMENT_NOTIFICATION.PAYMENT_INITIATED", {
       email: req.user.email,
       orderId: orderId,
-      amount: price.amount / 100,
-      currency: price.currency,
+      amount: amountInRupees,
+      currency,
       username: req.user.username,
-    })
+    });
 
     return res.status(201).json({
       message: "Payment initiated ",
@@ -62,12 +78,15 @@ const createPayment = async (req, res) => {
   }
 };
 
-const verifyPayment = async(req, res) => {
+const verifyPayment = async (req, res) => {
   const { razorpayOrderId, paymentId, signature } = req.body;
   const secret = process.env.RAZORPAY_KEY_SECRET;
+  const token = req.cookies?.token || req.headers?.authorization?.split(" ")[1];
 
   try {
-    const {validatePaymentVerification} = require("../../node_modules/razorpay/dist/utils/razorpay-utils.js");
+    const {
+      validatePaymentVerification,
+    } = require("../../node_modules/razorpay/dist/utils/razorpay-utils.js");
 
     // Validate the payment signature
     const isValid = validatePaymentVerification(
@@ -79,37 +98,62 @@ const verifyPayment = async(req, res) => {
       secret,
     );
 
-    if(!isValid){
+    if (!isValid) {
       return res.status(400).json({
         message: "Invalid payment signature",
       });
     }
 
-    const payment = await paymentModel.findOne({razorpayOrderId,status:"PENDING"});
+    const payment = await paymentModel.findOne({
+      razorpayOrderId,
+      status: "PENDING",
+    });
 
-    if(!payment){
+    if (!payment) {
       return res.status(404).json({
-        message:"Payment not found"
-      })
+        message: "Payment not found",
+      });
     }
 
     payment.paymentId = paymentId;
     payment.signature = signature;
-    payment.status = "COMPLETED";
+    payment.status = "PAID";
 
     await payment.save();
 
+    await axios.patch(
+      `${process.env.ORDER_SERVICE_URL}/api/orders/${payment.order}/complete`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    try {
+      await axios.delete(`${CART_SERVICE_URL}/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (cartClearError) {
+      console.error(
+        "Failed to clear cart after payment:",
+        cartClearError.message,
+      );
+    }
+
     // Publish payment verification event to RabbitMQ
-    await publishtoQueue("PAYMENT_NOTIFICATION.PAYMENT_COMPLETED",
-    {
+    await publishtoQueue("PAYMENT_NOTIFICATION.PAYMENT_COMPLETED", {
       email: req.user.email,
       orderId: payment.order,
       paymentId: payment.paymentId,
       paymentMethod: payment.paymentMethod,
       amount: payment.price.amount / 100,
       currency: payment.price.currency,
-      fullName:req.user.fullName
-    })
+      fullName: req.user.fullName,
+    });
 
     await publishtoQueue("PAYMENT_SELLER_DASHBOARD.PAYMENT_UPDATE", payment);
 
@@ -117,18 +161,14 @@ const verifyPayment = async(req, res) => {
       message: "Payment verified successfully",
       payment,
     });
-  
-  }catch(err) {
-
+  } catch (err) {
     // Publish payment failure event to RabbitMQ
-    await publishtoQueue("PAYMENT_NOTIFICATION.PAYMENT_FAILED",
-      {
-        email:req.user.email,
-        orderId: razorpayOrderId,
-        paymentId: paymentId,
-        fullName: req.user.fullName
-
-      })
+    await publishtoQueue("PAYMENT_NOTIFICATION.PAYMENT_FAILED", {
+      email: req.user.email,
+      orderId: razorpayOrderId,
+      paymentId: paymentId,
+      fullName: req.user.fullName,
+    });
 
     return res.status(500).json({
       message: "Internal server error",

@@ -1,6 +1,8 @@
 const cartModel = require("../models/cart.model");
 const axios = require("axios");
 
+const TAX_RATE = 0.18;
+
 const addItemToCart = async (req, res) => {
   try {
     const { productId, qty } = req.body;
@@ -138,13 +140,14 @@ const getCartItems = async (req, res) => {
       throw new Error("Product service unavailable");
     }
 
-    // Calculate total (subtotal + tax/shipping if applicable)
-    const total = subtotal; // Adjust if you have tax/shipping
+    const taxAmount = Math.round(subtotal * TAX_RATE);
+    const total = subtotal + taxAmount;
 
     res.status(200).json({
       items,
       totals: {
         subtotal,
+        tax: taxAmount,
         total,
         itemCount: items.length,
         totalQuantity: items.reduce((sum, item) => sum + item.quantity, 0),
@@ -273,3 +276,4 @@ module.exports = {
   deleteItemFromCart,
   clearCart,
 };
+

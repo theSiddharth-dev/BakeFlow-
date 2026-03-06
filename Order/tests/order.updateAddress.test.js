@@ -799,7 +799,7 @@ describe("PATCH /api/orders/:id/address - Update delivery address", () => {
       );
     });
 
-    it("should return 400 if order status is COMPLETED", async () => {
+    it("should return 400 if order status is CONFIRMED", async () => {
       const userId = new mongoose.Types.ObjectId();
       const productId = new mongoose.Types.ObjectId();
       const token = generateToken(userId);
@@ -813,7 +813,7 @@ describe("PATCH /api/orders/:id/address - Update delivery address", () => {
             price: { amount: 100, currency: "INR" },
           },
         ],
-        status: "COMPLETED",
+        status: "CONFIRMED",
         totalPrice: { amount: 100, currency: "INR" },
         shippingAddress: {
           street: "123 Main St",
@@ -839,7 +839,7 @@ describe("PATCH /api/orders/:id/address - Update delivery address", () => {
         .expect(400);
 
       expect(response.body.message).toMatch(
-        /cannot.*update.*address.*completed/i,
+        /cannot.*update.*address.*confirmed/i,
       );
     });
 

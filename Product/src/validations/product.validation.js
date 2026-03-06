@@ -9,7 +9,6 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-
 // Validation rules for product creation
 const validateProduct = [
   body("title")
@@ -34,11 +33,22 @@ const validateProduct = [
     .withMessage("Price currency must be a string")
     .isIn(["INR", "USD", "EUR"])
     .withMessage("Invalid currency"),
-    handleValidationErrors
+  body("costPriceAmount")
+    .notEmpty()
+    .withMessage("Cost price amount is required")
+    .isNumeric()
+    .withMessage("Cost price amount must be a number")
+    .custom((value) => parseFloat(value) >= 0)
+    .withMessage("Cost price amount must be zero or positive"),
+  body("costPriceCurrency")
+    .optional()
+    .isString()
+    .withMessage("Cost price currency must be a string")
+    .isIn(["INR", "USD", "EUR"])
+    .withMessage("Invalid cost currency"),
+  handleValidationErrors,
 ];
 
-
-
 module.exports = {
-  validateProduct
+  validateProduct,
 };

@@ -19,6 +19,18 @@ const productSchema = new mongoose.Schema({
       default: "INR",
     },
   },
+  costPrice: {
+    amount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    currency: {
+      type: String,
+      enum: ["USD", "INR"],
+      default: "INR",
+    },
+  },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
@@ -30,14 +42,13 @@ const productSchema = new mongoose.Schema({
       id: String,
     },
   ],
-  stock:{
-    type:Number,
-    default:0
-  }
+  stock: {
+    type: Number,
+    default: 0,
+  },
 });
 
 const productModel = mongoose.model("product", productSchema);
 productSchema.index({ title: "text", description: "text" });
 
 module.exports = productModel;
-

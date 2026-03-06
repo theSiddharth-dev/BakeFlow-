@@ -13,7 +13,7 @@ app.use(
   cors({
     origin: [
         "http://localhost:5173",
-        "http://localhost:3002",
+        "http://localhost:3001",
         "https://product-service-58x4.onrender.com/"
         ],
         accessControlAllowCredentials: true,  
