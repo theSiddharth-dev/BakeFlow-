@@ -14,6 +14,18 @@ router.post(
 
 router.get("/me", createauthmiddleware(["user"]), OrderController.getMyOrder);
 
+router.get(
+  "/owner",
+  createauthmiddleware(["owner"]),
+  OrderController.getOwnerOrders,
+);
+
+router.patch(
+  "/:id/owner-status",
+  createauthmiddleware(["owner"]),
+  OrderController.ownerUpdateOrderStatus,
+);
+
 router.post(
   "/:id/cancel",
   createauthmiddleware(["user"]),
@@ -31,6 +43,12 @@ router.patch(
   "/:id/complete",
   createauthmiddleware(["user"]),
   OrderController.completeOrderById,
+);
+
+router.get(
+  "/:id/receipt",
+  createauthmiddleware(["user", "owner"]),
+  OrderController.downloadReceiptByOrderId,
 );
 
 router.get(

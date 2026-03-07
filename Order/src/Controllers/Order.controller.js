@@ -1,15 +1,186 @@
 const axios = require("axios");
 const mongoose = require("mongoose");
+const fs = require("fs");
+const path = require("path");
 const orderModel = require("../models/order.model");
 const { publishtoQueue } = require("./../Broker/Broker");
+const { generateReceiptPdf } = require("../services/receipt.service");
 
 const TAX_RATE = 0.18;
+const OWNER_VISIBLE_STATUSES = [
+  "CONFIRMED",
+  "PROCESSING",
+  "COMPLETED",
+  "REJECTED",
+];
+const OWNER_ACTIONS = {
+  ACCEPT: "ACCEPT",
+  REJECT: "REJECT",
+  COMPLETE: "COMPLETE",
+};
+
+const mapOrderStatusForOwner = (status) => {
+  if (status === "CONFIRMED") return "PENDING";
+  if (status === "PROCESSING") return "PROCESSING";
+  if (status === "COMPLETED") return "COMPLETED";
+  if (status === "REJECTED") return "REJECTED";
+  return status;
+};
 
 const mapInventoryItems = (items = []) => {
   return items.map((item) => ({
     productId: item.productId || item.product?.toString(),
     quantity: Number(item.quantity),
   }));
+};
+
+const fetchProductMapByIds = async (productIds = [], token) => {
+  const uniqueProductIds = [...new Set(productIds.filter(Boolean))];
+
+  const productEntries = await Promise.all(
+    uniqueProductIds.map(async (productId) => {
+      const response = await axios.get(
+        `${process.env.PRODUCT_SERVICE_URL}/${productId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+
+      return [productId.toString(), response.data?.product || null];
+    }),
+  );
+
+  return new Map(productEntries);
+};
+
+const ownerHasAccessToOrder = (order, ownerId, productMap) => {
+  return order.items.some((item) => {
+    const product = productMap.get(item.product?.toString());
+    return product?.owner?.toString() === ownerId.toString();
+  });
+};
+
+const getOwnerOrderName = (order, productMap) => {
+  const names = order.items
+    .map((item) => productMap.get(item.product?.toString())?.title)
+    .filter(Boolean);
+
+  const uniqueNames = [...new Set(names)];
+
+  if (uniqueNames.length === 0) {
+    return `Order ${order._id}`;
+  }
+
+  if (uniqueNames.length === 1) {
+    return uniqueNames[0];
+  }
+
+  return `${uniqueNames[0]} +${uniqueNames.length - 1} more`;
+};
+
+const getOwnerOrderPaymentStatus = (status) => {
+  return ["CONFIRMED", "PROCESSING", "COMPLETED", "REJECTED"].includes(status)
+    ? "PAID"
+    : "PENDING";
+};
+
+const getOwnerOrderActionOptions = (status) => {
+  if (status === "CONFIRMED") {
+    return [OWNER_ACTIONS.ACCEPT, OWNER_ACTIONS.REJECT];
+  }
+
+  if (status === "PROCESSING") {
+    return [OWNER_ACTIONS.COMPLETE];
+  }
+
+  return [];
+};
+
+const resolveCustomerName = (user) => {
+  if (!user) return "Customer";
+  if (user.fullName && typeof user.fullName === "object") {
+    const fullName = [user.fullName.firstName, user.fullName.lastName]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+    if (fullName) return fullName;
+  }
+  if (typeof user.fullName === "string" && user.fullName.trim()) {
+    return user.fullName.trim();
+  }
+  return user.username || "Customer";
+};
+
+const getReceiptItems = async (order, token) => {
+  const productIds = order.items.map((item) => item.product?.toString());
+  let productMap = new Map();
+
+  try {
+    productMap = await fetchProductMapByIds(productIds, token);
+  } catch (error) {
+    productMap = new Map();
+  }
+
+  return order.items.map((item) => {
+    const product = productMap.get(item.product?.toString());
+    const itemTotal = Number(item.price?.amount || 0);
+    const qty = Number(item.quantity || 0);
+
+    return {
+      name: product?.title || `Product ${item.product?.toString() || ""}`,
+      code: product?.sku || product?._id || item.product?.toString() || "-",
+      quantity: qty,
+      unitPrice: qty > 0 ? itemTotal / qty : itemTotal,
+      totalPrice: itemTotal,
+    };
+  });
+};
+
+const ensureReceiptForOrder = async ({
+  order,
+  token,
+  user,
+  paymentInfo = {},
+}) => {
+  if (order.receipt?.filePath) {
+    return order;
+  }
+
+  const receiptItems = await getReceiptItems(order, token);
+  const subtotal = receiptItems.reduce(
+    (sum, item) => sum + Number(item.totalPrice || 0),
+    0,
+  );
+  const tax = Math.max(Number(order.totalPrice?.amount || 0) - subtotal, 0);
+
+  const result = await generateReceiptPdf({
+    bakeryName: process.env.BAKERY_NAME || "Bakeflow Bakery",
+    systemName: process.env.SYSTEM_NAME || "Bakeflow",
+    orderId: order._id.toString(),
+    customerName: resolveCustomerName(user),
+    paymentMethod: paymentInfo.paymentMethod || "Razorpay",
+    paymentStatus: paymentInfo.paymentStatus || "PAID",
+    paymentId: paymentInfo.paymentId || "-",
+    orderDate: order.createdAt,
+    currency: order.totalPrice?.currency || "INR",
+    items: receiptItems,
+    subtotal,
+    tax,
+    total: Number(order.totalPrice?.amount || 0),
+  });
+
+  order.receipt = {
+    filePath: result.relativeFilePath,
+    fileName: result.fileName,
+    generatedAt: new Date(),
+    paymentMethod: paymentInfo.paymentMethod || "Razorpay",
+    paymentStatus: paymentInfo.paymentStatus || "PAID",
+    paymentId: paymentInfo.paymentId || "-",
+    customerName: resolveCustomerName(user),
+  };
+
+  await order.save();
+  return order;
 };
 
 const createOrder = async (req, res) => {
@@ -200,6 +371,169 @@ const getMyOrder = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+const getOwnerOrders = async (req, res) => {
+  const owner = req.user;
+  const token = req.cookies?.token || req.headers?.authorization?.split(" ")[1];
+
+  if (!owner) {
+    return res.status(401).json({
+      message: "Unauthorized User",
+    });
+  }
+
+  try {
+    const orders = await orderModel
+      .find({ status: { $in: OWNER_VISIBLE_STATUSES } })
+      .sort({ createdAt: -1 });
+
+    if (orders.length === 0) {
+      return res.status(200).json({
+        orders: [],
+      });
+    }
+
+    const productIds = orders.flatMap((order) =>
+      order.items.map((item) => item.product?.toString()),
+    );
+    const productMap = await fetchProductMapByIds(productIds, token);
+
+    const ownerOrders = orders
+      .filter((order) => ownerHasAccessToOrder(order, owner.id, productMap))
+      .map((order) => {
+        const itemsQuantity = order.items.reduce(
+          (sum, item) => sum + Number(item.quantity || 0),
+          0,
+        );
+
+        return {
+          _id: order._id,
+          orderName: getOwnerOrderName(order, productMap),
+          createdAt: order.createdAt,
+          itemsQuantity,
+          amount: {
+            amount: order.totalPrice?.amount || 0,
+            currency: order.totalPrice?.currency || "INR",
+          },
+          paymentStatus: getOwnerOrderPaymentStatus(order.status),
+          ownerOrderStatus: mapOrderStatusForOwner(order.status),
+          actionOptions: getOwnerOrderActionOptions(order.status),
+          orderStatusRaw: order.status,
+          receiptAvailable: Boolean(order.receipt?.filePath),
+        };
+      });
+
+    return res.status(200).json({
+      orders: ownerOrders,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
+const ownerUpdateOrderStatus = async (req, res) => {
+  const owner = req.user;
+  const orderId = req.params.id;
+  const action = String(req.body?.action || "").toUpperCase();
+  const token = req.cookies?.token || req.headers?.authorization?.split(" ")[1];
+
+  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+    return res.status(400).json({
+      message: "Invalid order ID format",
+    });
+  }
+
+  if (!Object.values(OWNER_ACTIONS).includes(action)) {
+    return res.status(400).json({
+      message: "Invalid action. Use ACCEPT, REJECT, or COMPLETE",
+    });
+  }
+
+  try {
+    const order = await orderModel.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found",
+      });
+    }
+
+    const productIds = order.items.map((item) => item.product?.toString());
+    const productMap = await fetchProductMapByIds(productIds, token);
+
+    if (!ownerHasAccessToOrder(order, owner.id, productMap)) {
+      return res.status(403).json({
+        message: "Forbidden - You don't have access to this order",
+      });
+    }
+
+    if (action === OWNER_ACTIONS.ACCEPT) {
+      if (order.status !== "CONFIRMED") {
+        return res.status(400).json({
+          message: "Only paid pending orders can be accepted",
+        });
+      }
+
+      order.status = "PROCESSING";
+      await order.save();
+
+      return res.status(200).json({
+        message: "Order accepted successfully",
+        order,
+      });
+    }
+
+    if (action === OWNER_ACTIONS.COMPLETE) {
+      if (order.status !== "PROCESSING") {
+        return res.status(400).json({
+          message: "Only processing orders can be completed",
+        });
+      }
+
+      order.status = "COMPLETED";
+      await order.save();
+
+      return res.status(200).json({
+        message: "Order completed successfully",
+        order,
+      });
+    }
+
+    if (!["CONFIRMED", "PROCESSING"].includes(order.status)) {
+      return res.status(400).json({
+        message: "Only paid pending or processing orders can be rejected",
+      });
+    }
+
+    const inventoryItems = mapInventoryItems(order.items);
+
+    await axios.post(
+      `${process.env.PRODUCT_SERVICE_URL}/inventory/release`,
+      { items: inventoryItems },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    order.status = "REJECTED";
+    await order.save();
+
+    return res.status(200).json({
+      message: "Order rejected successfully",
+      order,
+    });
+  } catch (error) {
+    return res.status(500).json({
       message: "Internal server error",
       error: error.message,
     });
@@ -551,6 +885,12 @@ const updateOrderAddress = async (req, res) => {
 const completeOrderById = async (req, res) => {
   const user = req.user;
   const orderId = req.params.id;
+  const token = req.cookies?.token || req.headers?.authorization?.split(" ")[1];
+  const paymentInfo = {
+    paymentId: req.body?.paymentId,
+    paymentMethod: req.body?.paymentMethod || "Razorpay",
+    paymentStatus: req.body?.paymentStatus || "PAID",
+  };
 
   if (!mongoose.Types.ObjectId.isValid(orderId)) {
     return res.status(400).json({
@@ -574,25 +914,100 @@ const completeOrderById = async (req, res) => {
     }
 
     if (order.status === "COMPLETED" || order.status === "CONFIRMED") {
+      if (!order.receipt?.filePath) {
+        await ensureReceiptForOrder({ order, token, user, paymentInfo });
+      }
+
       return res.status(200).json({
         message: `Order already ${order.status.toLowerCase()}`,
         order,
+        receipt: order.receipt,
       });
     }
 
-    if (order.status === "CANCELLED") {
+    if (order.status === "CANCELLED" || order.status === "REJECTED") {
       return res.status(400).json({
-        message: "Cannot complete a cancelled order",
+        message: "Cannot confirm a rejected or cancelled order",
       });
     }
 
     order.status = "CONFIRMED";
     await order.save();
 
+    await ensureReceiptForOrder({ order, token, user, paymentInfo });
+
     return res.status(200).json({
       message: "Order confirmed successfully",
       order,
+      receipt: order.receipt,
     });
+  } catch (err) {
+    return res.status(500).json({
+      message: "Internal server error",
+      error: err.message,
+    });
+  }
+};
+
+const downloadReceiptByOrderId = async (req, res) => {
+  const user = req.user;
+  const orderId = req.params.id;
+  const token = req.cookies?.token || req.headers?.authorization?.split(" ")[1];
+
+  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+    return res.status(400).json({
+      message: "Invalid order ID format",
+    });
+  }
+
+  try {
+    const order = await orderModel.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({
+        message: "Order not found",
+      });
+    }
+
+    if (user.role === "user" && order.user.toString() !== user.id) {
+      return res.status(403).json({
+        message: "Forbidden - You don't have access to this order",
+      });
+    }
+
+    if (user.role === "owner") {
+      const productIds = order.items.map((item) => item.product?.toString());
+      const productMap = await fetchProductMapByIds(productIds, token);
+      if (!ownerHasAccessToOrder(order, user.id, productMap)) {
+        return res.status(403).json({
+          message: "Forbidden - You don't have access to this order",
+        });
+      }
+    }
+
+    if (!order.receipt?.filePath) {
+      return res.status(404).json({
+        message: "Receipt not generated yet",
+      });
+    }
+
+    const absolutePath = path.join(
+      __dirname,
+      "..",
+      "..",
+      order.receipt.filePath,
+    );
+
+    if (!fs.existsSync(absolutePath)) {
+      return res.status(404).json({
+        message: "Receipt file not found",
+      });
+    }
+
+    return res.download(
+      absolutePath,
+      order.receipt.fileName || `receipt-${order._id}.pdf`,
+    );
   } catch (err) {
     return res.status(500).json({
       message: "Internal server error",
@@ -604,8 +1019,11 @@ const completeOrderById = async (req, res) => {
 module.exports = {
   createOrder,
   getMyOrder,
+  getOwnerOrders,
+  ownerUpdateOrderStatus,
   getOrderById,
   cancelOrderById,
   updateOrderAddress,
   completeOrderById,
+  downloadReceiptByOrderId,
 };

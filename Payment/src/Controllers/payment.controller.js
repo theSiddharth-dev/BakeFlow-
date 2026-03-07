@@ -123,7 +123,11 @@ const verifyPayment = async (req, res) => {
 
     await axios.patch(
       `${process.env.ORDER_SERVICE_URL}/api/orders/${payment.order}/complete`,
-      {},
+      {
+        paymentId: payment.paymentId,
+        paymentMethod: "Razorpay",
+        paymentStatus: payment.status,
+      },
       {
         headers: {
           Authorization: `Bearer ${token}`,

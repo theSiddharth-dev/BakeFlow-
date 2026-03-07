@@ -56,7 +56,9 @@ const OrderSchema = new mongoose.Schema(
       enum: [
         "PENDING",
         "CONFIRMED",
+        "PROCESSING",
         "COMPLETED",
+        "REJECTED",
         "CANCELLED",
         "SHIPPED",
         "DELIVERED",
@@ -76,6 +78,31 @@ const OrderSchema = new mongoose.Schema(
     shippingAddress: {
       type: addressSchema,
       required: true,
+    },
+    receipt: {
+      filePath: {
+        type: String,
+      },
+      fileName: {
+        type: String,
+      },
+      generatedAt: {
+        type: Date,
+      },
+      paymentMethod: {
+        type: String,
+        default: "Razorpay",
+      },
+      paymentStatus: {
+        type: String,
+        default: "PAID",
+      },
+      paymentId: {
+        type: String,
+      },
+      customerName: {
+        type: String,
+      },
     },
   },
   { timestamps: true },
