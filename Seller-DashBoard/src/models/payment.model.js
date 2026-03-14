@@ -12,12 +12,15 @@ const paymentSchema = new mongoose.Schema({
         type:String,
         required:true
     },
+    paymentMethod:{
+        type:String,
+    },
     signature:{
         type:String,
     },
     status:{
         type:String,
-        enum:['PENDING','COMPLETED','FAILED'],
+        enum: ["PENDING", "PAID", "FAILED", "REFUNDED"],
         default:'PENDING',
     },
     user:{

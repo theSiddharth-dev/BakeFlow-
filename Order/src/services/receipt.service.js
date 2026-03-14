@@ -1,6 +1,13 @@
 const fs = require("fs");
 const path = require("path");
 const PDFDocument = require("pdfkit");
+const ImageKit = require("imagekit");
+
+const imagekit = new ImageKit({
+  publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
+});
 
 const RECEIPTS_DIR = path.join(__dirname, "..", "..", "receipts");
 
@@ -172,7 +179,22 @@ const generateReceiptPdf = async ({
   };
 };
 
+const uploadReceiptToImageKit = async (absoluteFilePath, fileName) => {
+  const fileBuffer = fs.readFileSync(absoluteFilePath);
+  const response = await imagekit.upload({
+    file: fileBuffer,
+    fileName,
+    folder: "/receipts",
+    useUniqueFileName: false,
+  });
+  return {
+    imageKitUrl: response.url,
+    imageKitFileId: response.fileId,
+  };
+};
+
 module.exports = {
   RECEIPTS_DIR,
   generateReceiptPdf,
+  uploadReceiptToImageKit,
 };

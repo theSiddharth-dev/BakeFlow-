@@ -1,7 +1,33 @@
 const productModel = require("../models/product.model");
 const { uploadImages } = require("../services/imagekit.service");
 const mongoose = require("mongoose");
+const axios = require("axios");
 const { publishtoQueue } = require("./../Broker/Broker");
+
+const publishProductUpdated = async (product) => {
+  await publishtoQueue("PRODUCT_SELLER_DASHBOARD.PRODUCT_UPDATED", product);
+};
+
+const publishProductDeleted = async (productId) => {
+  await publishtoQueue("PRODUCT_SELLER_DASHBOARD.PRODUCT_DELETED", {
+    _id: productId,
+  });
+};
+
+const AUTH_SERVICE_URL =
+  process.env.AUTH_SERVICE_URL || "http://localhost:3000/api/auth";
+
+const fetchNotificationRecipients = async (token) => {
+  if (!token) return [];
+
+  const response = await axios.get(`${AUTH_SERVICE_URL}/internal/user-emails`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  return response?.data?.users || [];
+};
 
 const createProduct = async (req, res) => {
   try {
@@ -17,6 +43,7 @@ const createProduct = async (req, res) => {
     } = req.body;
 
     const files = req.files || [];
+    const token = req.headers?.authorization?.split(" ")[1] || null;
 
     if (!title || !priceAmount || costPriceAmount === undefined) {
       return res.status(400).json({
@@ -55,12 +82,35 @@ const createProduct = async (req, res) => {
 
     await publishtoQueue("PRODUCT_SELLER_DASHBOARD.PRODUCT_CREATED", product);
 
-    await publishtoQueue("PRODUCT_NOTIFICATION.PRODUCT_CREATED", {
-      email: req.user.email,
-      productId: product._id,
-      productName: product.title,
-      ownerId: owner,
-    });
+    let recipients = [];
+    try {
+      recipients = await fetchNotificationRecipients(token);
+    } catch (error) {
+      console.error("Unable to fetch user recipients:", error.message);
+    }
+
+    if (recipients.length > 0) {
+      await Promise.all(
+        recipients.map((recipient) =>
+          publishtoQueue("PRODUCT_NOTIFICATION.PRODUCT_CREATED", {
+            email: recipient.email,
+            username: recipient.username,
+            productId: product._id,
+            productName: product.title,
+            ownerId: owner,
+          }),
+        ),
+      );
+    } else {
+      // Fallback keeps notification path active even if recipient lookup fails.
+      await publishtoQueue("PRODUCT_NOTIFICATION.PRODUCT_CREATED", {
+        email: req.user.email,
+        username: req.user.username,
+        productId: product._id,
+        productName: product.title,
+        ownerId: owner,
+      });
+    }
 
     res.status(201).json(product);
   } catch (error) {
@@ -70,9 +120,12 @@ const createProduct = async (req, res) => {
 
 const getProducts = async (req, res) => {
   try {
-    const { q, minprice, maxprice, skip = 0, limit = 20 } = req.query;
+    const { q, minprice, maxprice, category, skip = 0, limit = 20 } = req.query;
 
     const filter = {};
+
+    const escapeRegex = (value = "") =>
+      String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
     if (q) {
       filter.$text = { $search: q };
@@ -90,6 +143,10 @@ const getProducts = async (req, res) => {
         ...filter["price.amount"],
         $lte: Number(maxprice),
       };
+    }
+
+    if (category && category !== "All Products") {
+      filter.category = new RegExp(`^${escapeRegex(category.trim())}$`, "i");
     }
 
     const products = await productModel
@@ -136,7 +193,15 @@ const updateProduct = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    const allowedUpdates = ["title", "description", "price", "costPrice"];
+    const allowedUpdates = [
+      "title",
+      "description",
+      "price",
+      "costPrice",
+      "stock",
+      "expiryDate",
+      "stockNote",
+    ];
 
     for (const key of Object.keys(req.body)) {
       if (allowedUpdates.includes(key)) {
@@ -158,12 +223,21 @@ const updateProduct = async (req, res) => {
             product.costPrice.currency = req.body.costPrice.currency;
           }
         } else {
-          product[key] = req.body[key];
+          if (key === "stock") {
+            product.stock = Number(req.body.stock);
+          } else if (key === "expiryDate") {
+            product.expiryDate = req.body.expiryDate
+              ? new Date(req.body.expiryDate)
+              : undefined;
+          } else {
+            product[key] = req.body[key];
+          }
         }
       }
     }
 
     const updatedProduct = await product.save();
+    await publishProductUpdated(updatedProduct);
 
     return res.status(200).json({ product: updatedProduct });
   } catch (error) {
@@ -231,6 +305,8 @@ const reserveInventory = async (req, res) => {
         productId: item.productId,
         quantity,
       });
+
+      await publishProductUpdated(updatedProduct);
     }
 
     return res.status(200).json({ message: "Inventory reserved successfully" });
@@ -268,6 +344,14 @@ const releaseInventory = async (req, res) => {
       })),
     );
 
+    const updatedProducts = await productModel.find({
+      _id: { $in: items.map((item) => item.productId) },
+    });
+
+    await Promise.all(
+      updatedProducts.map((product) => publishProductUpdated(product)),
+    );
+
     return res.status(200).json({ message: "Inventory released successfully" });
   } catch (error) {
     return res.status(500).json({ error: error.message });
@@ -298,6 +382,7 @@ const deleteProduct = async (req, res) => {
     }
 
     await productModel.findByIdAndDelete(id);
+    await publishProductDeleted(id);
 
     return res.status(200).json({ message: "Product deleted successfully" });
   } catch (error) {

@@ -5,13 +5,23 @@ const path = require("path");
 const orderModel = require("../models/order.model");
 const { publishtoQueue } = require("./../Broker/Broker");
 const { generateReceiptPdf } = require("../services/receipt.service");
+const { uploadReceiptToImageKit } = require("../services/receipt.service");
 
 const TAX_RATE = 0.18;
 const OWNER_VISIBLE_STATUSES = [
   "CONFIRMED",
   "PROCESSING",
+  "READY",
+  "SHIPPED",
   "COMPLETED",
   "REJECTED",
+];
+const OWNER_STATUS_FLOW = [
+  "CONFIRMED",
+  "PROCESSING",
+  "READY",
+  "SHIPPED",
+  "COMPLETED",
 ];
 const OWNER_ACTIONS = {
   ACCEPT: "ACCEPT",
@@ -19,9 +29,15 @@ const OWNER_ACTIONS = {
   COMPLETE: "COMPLETE",
 };
 
+const publishOrderUpdateForSellerDashboard = async (order) => {
+  await publishtoQueue("ORDER_SELLER_DASHBOARD.ORDER_UPDATED", order);
+};
+
 const mapOrderStatusForOwner = (status) => {
   if (status === "CONFIRMED") return "PENDING";
   if (status === "PROCESSING") return "PROCESSING";
+  if (status === "READY") return "READY";
+  if (status === "SHIPPED") return "SHIPPED";
   if (status === "COMPLETED") return "COMPLETED";
   if (status === "REJECTED") return "REJECTED";
   return status;
@@ -79,21 +95,30 @@ const getOwnerOrderName = (order, productMap) => {
 };
 
 const getOwnerOrderPaymentStatus = (status) => {
-  return ["CONFIRMED", "PROCESSING", "COMPLETED", "REJECTED"].includes(status)
+  return [
+    "CONFIRMED",
+    "PROCESSING",
+    "READY",
+    "SHIPPED",
+    "COMPLETED",
+    "REJECTED",
+  ].includes(status)
     ? "PAID"
     : "PENDING";
 };
 
+const getNextOwnerOrderStatus = (status) => {
+  const currentIndex = OWNER_STATUS_FLOW.indexOf(status);
+  if (currentIndex === -1 || currentIndex === OWNER_STATUS_FLOW.length - 1) {
+    return null;
+  }
+
+  return OWNER_STATUS_FLOW[currentIndex + 1];
+};
+
 const getOwnerOrderActionOptions = (status) => {
-  if (status === "CONFIRMED") {
-    return [OWNER_ACTIONS.ACCEPT, OWNER_ACTIONS.REJECT];
-  }
-
-  if (status === "PROCESSING") {
-    return [OWNER_ACTIONS.COMPLETE];
-  }
-
-  return [];
+  const nextStatus = getNextOwnerOrderStatus(status);
+  return nextStatus ? [nextStatus] : [];
 };
 
 const resolveCustomerName = (user) => {
@@ -180,6 +205,22 @@ const ensureReceiptForOrder = async ({
   };
 
   await order.save();
+
+  try {
+    const { imageKitUrl, imageKitFileId } = await uploadReceiptToImageKit(
+      result.absoluteFilePath,
+      result.fileName,
+    );
+    order.receipt.imageKitUrl = imageKitUrl;
+    order.receipt.imageKitFileId = imageKitFileId;
+    await order.save();
+  } catch (uploadErr) {
+    console.error(
+      "ImageKit upload failed, receipt saved locally:",
+      uploadErr.message,
+    );
+  }
+
   return order;
 };
 
@@ -443,6 +484,7 @@ const ownerUpdateOrderStatus = async (req, res) => {
   const owner = req.user;
   const orderId = req.params.id;
   const action = String(req.body?.action || "").toUpperCase();
+  const requestedStatus = String(req.body?.status || "").toUpperCase();
   const token = req.cookies?.token || req.headers?.authorization?.split(" ")[1];
 
   if (!mongoose.Types.ObjectId.isValid(orderId)) {
@@ -451,9 +493,25 @@ const ownerUpdateOrderStatus = async (req, res) => {
     });
   }
 
-  if (!Object.values(OWNER_ACTIONS).includes(action)) {
+  if (!action && !requestedStatus) {
+    return res.status(400).json({
+      message: "Provide action or status to update order",
+    });
+  }
+
+  if (action && !Object.values(OWNER_ACTIONS).includes(action)) {
     return res.status(400).json({
       message: "Invalid action. Use ACCEPT, REJECT, or COMPLETE",
+    });
+  }
+
+  if (
+    requestedStatus &&
+    ![...OWNER_STATUS_FLOW, "REJECTED"].includes(requestedStatus)
+  ) {
+    return res.status(400).json({
+      message:
+        "Invalid status. Use PROCESSING, READY, SHIPPED, COMPLETED, or REJECTED",
     });
   }
 
@@ -475,6 +533,61 @@ const ownerUpdateOrderStatus = async (req, res) => {
       });
     }
 
+    if (action === OWNER_ACTIONS.REJECT || requestedStatus === "REJECTED") {
+      if (!["CONFIRMED", "PROCESSING", "READY"].includes(order.status)) {
+        return res.status(400).json({
+          message:
+            "Only paid pending, processing, or ready orders can be rejected",
+        });
+      }
+
+      const inventoryItems = mapInventoryItems(order.items);
+
+      await axios.post(
+        `${process.env.PRODUCT_SERVICE_URL}/inventory/release`,
+        { items: inventoryItems },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      order.status = "REJECTED";
+      await order.save();
+      await publishOrderUpdateForSellerDashboard(order);
+
+      return res.status(200).json({
+        message: "Order rejected successfully",
+        order,
+      });
+    }
+
+    let targetStatus = null;
+
+    if (requestedStatus) {
+      if (!OWNER_STATUS_FLOW.includes(order.status)) {
+        return res.status(400).json({
+          message: "Order status cannot be advanced from current state",
+        });
+      }
+
+      const nextStatus = getNextOwnerOrderStatus(order.status);
+      if (!nextStatus) {
+        return res.status(400).json({
+          message: "Order is already in final state",
+        });
+      }
+
+      if (requestedStatus !== nextStatus) {
+        return res.status(400).json({
+          message: `Invalid status transition. Next allowed status is ${nextStatus}`,
+        });
+      }
+
+      targetStatus = requestedStatus;
+    }
+
     if (action === OWNER_ACTIONS.ACCEPT) {
       if (order.status !== "CONFIRMED") {
         return res.status(400).json({
@@ -482,13 +595,7 @@ const ownerUpdateOrderStatus = async (req, res) => {
         });
       }
 
-      order.status = "PROCESSING";
-      await order.save();
-
-      return res.status(200).json({
-        message: "Order accepted successfully",
-        order,
-      });
+      targetStatus = "PROCESSING";
     }
 
     if (action === OWNER_ACTIONS.COMPLETE) {
@@ -498,38 +605,21 @@ const ownerUpdateOrderStatus = async (req, res) => {
         });
       }
 
-      order.status = "COMPLETED";
-      await order.save();
-
-      return res.status(200).json({
-        message: "Order completed successfully",
-        order,
-      });
+      targetStatus = "COMPLETED";
     }
 
-    if (!["CONFIRMED", "PROCESSING"].includes(order.status)) {
+    if (!targetStatus) {
       return res.status(400).json({
-        message: "Only paid pending or processing orders can be rejected",
+        message: "Unable to resolve target status",
       });
     }
 
-    const inventoryItems = mapInventoryItems(order.items);
-
-    await axios.post(
-      `${process.env.PRODUCT_SERVICE_URL}/inventory/release`,
-      { items: inventoryItems },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    );
-
-    order.status = "REJECTED";
+    order.status = targetStatus;
     await order.save();
+    await publishOrderUpdateForSellerDashboard(order);
 
     return res.status(200).json({
-      message: "Order rejected successfully",
+      message: `Order moved to ${targetStatus}`,
       order,
     });
   } catch (error) {
@@ -781,6 +871,7 @@ const cancelOrderById = async (req, res) => {
     // Update order status to CANCELLED
     order.status = "CANCELLED";
     await order.save();
+    await publishOrderUpdateForSellerDashboard(order);
 
     res.status(200).json({
       message: "Order cancelled successfully",
@@ -933,6 +1024,7 @@ const completeOrderById = async (req, res) => {
 
     order.status = "CONFIRMED";
     await order.save();
+    await publishOrderUpdateForSellerDashboard(order);
 
     await ensureReceiptForOrder({ order, token, user, paymentInfo });
 
@@ -989,6 +1081,10 @@ const downloadReceiptByOrderId = async (req, res) => {
       return res.status(404).json({
         message: "Receipt not generated yet",
       });
+    }
+
+    if (order.receipt.imageKitUrl) {
+      return res.redirect(order.receipt.imageKitUrl);
     }
 
     const absolutePath = path.join(

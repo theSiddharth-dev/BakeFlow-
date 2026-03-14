@@ -46,6 +46,17 @@ const productSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  expiryDate: {
+    type: Date,
+  },
+  stockNote: {
+    type: String,
+    trim: true,
+  },
+  category: {
+    type: String,
+    enum: ["Breads", "Cakes", "Pastries", "Cookies", "Seasonal", "Beverages"],
+  },
 });
 
 const productModel = mongoose.model("product", productSchema);

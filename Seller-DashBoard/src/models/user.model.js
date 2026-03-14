@@ -59,4 +59,3 @@ const userSchema = new mongoose.Schema({
 const userModel = mongoose.model("user", userSchema); // Create model from schema
 
 module.exports = userModel; // Export the model
-

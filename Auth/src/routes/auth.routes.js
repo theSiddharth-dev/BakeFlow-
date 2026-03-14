@@ -49,4 +49,10 @@ router.post(
   Authcontroller.changePassword // Call change password controller
 );
 
+router.get(
+  "/internal/user-emails",
+  authMiddleware.authMiddleware,
+  Authcontroller.getUserEmailsForNotifications,
+);
+
 module.exports = router; // Export the router

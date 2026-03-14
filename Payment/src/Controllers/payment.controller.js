@@ -121,7 +121,7 @@ const verifyPayment = async (req, res) => {
 
     await payment.save();
 
-    await axios.patch(
+    const orderCompleteResponse = await axios.patch(
       `${process.env.ORDER_SERVICE_URL}/api/orders/${payment.order}/complete`,
       {
         paymentId: payment.paymentId,
@@ -134,6 +134,34 @@ const verifyPayment = async (req, res) => {
         },
       },
     );
+
+    let receiptAttachmentBase64 = null;
+    let receiptFileName = null;
+
+    try {
+      const receiptResponse = await axios.get(
+        `${process.env.ORDER_SERVICE_URL}/api/orders/${payment.order}/receipt`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          responseType: "arraybuffer",
+        },
+      );
+
+      receiptAttachmentBase64 = Buffer.from(receiptResponse.data).toString(
+        "base64",
+      );
+
+      receiptFileName =
+        orderCompleteResponse?.data?.receipt?.fileName ||
+        `receipt-${payment.order}.pdf`;
+    } catch (receiptError) {
+      console.error(
+        "Failed to fetch receipt attachment after payment:",
+        receiptError.message,
+      );
+    }
 
     try {
       await axios.delete(`${CART_SERVICE_URL}/`, {
@@ -157,6 +185,10 @@ const verifyPayment = async (req, res) => {
       amount: payment.price.amount / 100,
       currency: payment.price.currency,
       fullName: req.user.fullName,
+      username: req.user.username,
+      receiptAttachmentBase64,
+      receiptFileName,
+      receiptAuthToken: token,
     });
 
     await publishtoQueue("PAYMENT_SELLER_DASHBOARD.PAYMENT_UPDATE", payment);

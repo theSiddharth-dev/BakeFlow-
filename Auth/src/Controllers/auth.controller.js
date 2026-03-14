@@ -41,15 +41,15 @@ const registerUser = async (req, res) => {
     });
 
     // put the data Notification Queue
-    // await Promise.all([
-    //   publishtoQueue("AUTH_NOTIFICATION.USER_CREATED", {
-    //     id: user._id,
-    //     username: user.username,
-    //     email: user.email,
-    //     fullName: user.fullName,
-    //   }),
-    //   publishtoQueue("AUTH_SELLER_DASHBOARD.USER_CREATED", user),
-    // ]);
+    await Promise.all([
+      publishtoQueue("AUTH_NOTIFICATION.USER_CREATED", {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+      }),
+      publishtoQueue("AUTH_SELLER_DASHBOARD.USER_CREATED", user),
+    ]);
 
     const token = jwt.sign(
       {
@@ -350,6 +350,40 @@ const changePassword = async (req, res) => {
   }
 };
 
+const getUserEmailsForNotifications = async (req, res) => {
+  try {
+    if (req.user?.role !== "owner") {
+      return res.status(403).json({
+        message: "Forbidden: Only owners can access this endpoint",
+      });
+    }
+
+    const users = await userModel
+      .find({ role: "user" })
+      .select("email username fullName")
+      .lean();
+
+    return res.status(200).json({
+      users: users
+        .filter((user) => Boolean(user.email))
+        .map((user) => ({
+          id: user._id,
+          email: user.email,
+          username: user.username || "Customer",
+          fullName: [user?.fullName?.firstName, user?.fullName?.lastName]
+            .filter(Boolean)
+            .join(" ")
+            .trim(),
+        })),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   // Export the controller functions
   registerUser,
@@ -360,4 +394,5 @@ module.exports = {
   addAddress,
   removeAddress,
   changePassword,
+  getUserEmailsForNotifications,
 };

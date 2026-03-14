@@ -2,18 +2,166 @@ const userModel = require("../models/user.model");
 const productModel = require("../models/product.model");
 const orderModel = require("../models/order.model");
 const paymentModel = require("../models/payment.model");
+const axios = require("axios");
 
-const VALID_SALES_STATUSES = ["CONFIRMED", "COMPLETED", "DELIVERED", "SHIPPED"];
+const VALID_SALES_STATUSES = ["CONFIRMED", "COMPLETED","READY", "DELIVERED", "SHIPPED"];
 const LOW_STOCK_THRESHOLD = Number(process.env.LOW_STOCK_THRESHOLD || 5);
+const PRODUCT_SERVICE_URL =
+  process.env.PRODUCT_SERVICE_URL || "http://localhost:3001/api/products";
+const AUTH_SERVICE_URL =
+  process.env.AUTH_SERVICE_URL || "http://localhost:3000/api/auth";
+
+const getAuthenticatedUserId = (user) => user?.id || user?._id || null;
+
+const getCustomerDisplayName = (user, fallbackCustomerName) => {
+  if (fallbackCustomerName) return fallbackCustomerName;
+  if (!user) return "Unknown Customer";
+  if (typeof user.fullName === "object") {
+    const fullName = [user.fullName.firstName, user.fullName.lastName]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+    if (fullName) return fullName;
+  }
+  if (typeof user.fullName === "string" && user.fullName.trim()) {
+    return user.fullName.trim();
+  }
+  if (user.username) return user.username;
+  if (user.email) return user.email;
+  return "Unknown Customer";
+};
+
+const getSellerProducts = async (req, sellerId) => {
+  const localProducts = await productModel.find({ owner: sellerId });
+  console.log(`[SellerDashboard] localProducts count: ${localProducts.length} for seller: ${sellerId}`);
+
+  const authHeader = req.headers?.authorization;
+
+  if (!authHeader) {
+    console.log("[SellerDashboard] No auth header — returning local products only");
+    return localProducts;
+  }
+
+  try {
+    const response = await axios.get(`${PRODUCT_SERVICE_URL}/owner`, {
+      headers: {
+        Authorization: authHeader,
+      },
+      params: {
+        skip: 0,
+        limit: 1000,
+        ts: Date.now(),
+      },
+    });
+
+    const sourceProducts = Array.isArray(response?.data?.data)
+      ? response.data.data
+      : [];
+
+    console.log(`[SellerDashboard] Product service returned ${sourceProducts.length} products`);
+
+    if (sourceProducts.length === 0) {
+      return localProducts;
+    }
+
+    await Promise.all(
+      sourceProducts.map((product) => {
+        const { _id, ...productData } = product;
+        return productModel.findByIdAndUpdate(
+          _id,
+          { $set: productData },
+          { new: true, upsert: true },
+        );
+      }),
+    );
+
+    return sourceProducts;
+  } catch (error) {
+    console.error(`[SellerDashboard] Product service API call failed: ${error.message}`, error.response?.status || "");
+    return localProducts;
+  }
+};
+
+const syncUsersFromAuthService = async (req) => {
+  const authHeader = req.headers?.authorization;
+  if (!authHeader) return;
+
+  try {
+    const response = await axios.get(`${AUTH_SERVICE_URL}/internal/user-emails`, {
+      headers: {
+        Authorization: authHeader,
+      },
+      params: {
+        ts: Date.now(),
+      },
+    });
+
+    const users = Array.isArray(response?.data?.users) ? response.data.users : [];
+
+    if (users.length === 0) return;
+
+    await Promise.all(
+      users.map((user) => {
+        if (!user?.id || !user?.email) return Promise.resolve();
+
+        const fallbackFirstName = (user.username || "Customer").trim() || "Customer";
+
+        return userModel.findByIdAndUpdate(
+          user.id,
+          {
+            $set: {
+              username: user.username || fallbackFirstName,
+              email: user.email,
+              fullName: user.fullName || {
+                firstName: fallbackFirstName,
+                lastName: "",
+              },
+              role: user.role || "user",
+            },
+          },
+          {
+            upsert: true,
+            new: true,
+            setDefaultsOnInsert: true,
+          },
+        );
+      }),
+    );
+  } catch (error) {
+    console.error(
+      `[SellerDashboard] User backfill from auth failed: ${error.message}`,
+    );
+  }
+};
 
 const isBetweenDates = (dateValue, startDate, endDate) => {
   const date = new Date(dateValue);
   return date >= startDate && date <= endDate;
 };
 
+const getWeekRange = (dateValue) => {
+  const date = new Date(dateValue);
+  const day = date.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+
+  const startOfWeek = new Date(date);
+  startOfWeek.setDate(date.getDate() + mondayOffset);
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+  endOfWeek.setHours(23, 59, 59, 999);
+
+  return { startOfWeek, endOfWeek };
+};
+
 const getMetrics = async (req, res) => {
   try {
-    const seller = req.user;
+    const sellerId = getAuthenticatedUserId(req.user);
+    if (!sellerId) {
+      return res.status(401).json({ message: "Unauthorized: Invalid token payload" });
+    }
+    const registeredCustomersCount = await userModel.countDocuments({ role: "user" });
     const now = new Date();
     const startOfToday = new Date(now);
     startOfToday.setHours(0, 0, 0, 0);
@@ -23,18 +171,19 @@ const getMetrics = async (req, res) => {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     endOfMonth.setHours(23, 59, 59, 999);
+    const { startOfWeek, endOfWeek } = getWeekRange(now);
 
     // Get all products owned by this seller
-    const sellerProducts = await productModel.find({ owner: seller._id });
+    const sellerProducts = await getSellerProducts(req, sellerId);
     const productIds = sellerProducts.map((p) => p._id);
     const currency = sellerProducts[0]?.price?.currency || "INR";
 
     const lowStockProducts = sellerProducts
-      .filter((product) => Number(product.stock || 0) <= LOW_STOCK_THRESHOLD)
+      .filter((product) => Number(product?.stock ?? 0) <= LOW_STOCK_THRESHOLD)
       .map((product) => ({
         productId: product._id,
         title: product.title,
-        stock: Number(product.stock || 0),
+        stock: Number(product?.stock ?? 0),
       }));
 
     if (productIds.length === 0) {
@@ -49,10 +198,18 @@ const getMetrics = async (req, res) => {
           available: false,
           message: "Cost price data not available",
         },
+        weeklySales: 0,
+        weeklyRevenue: { amount: 0, currency: "INR" },
+        weeklyProfit: {
+          amount: null,
+          currency: "INR",
+          available: false,
+          message: "Cost price data not available",
+        },
         monthlySales: 0,
         averageOrderValue: { amount: 0, currency: "INR" },
-        totalCustomer: 0,
-        totalCustomers: 0,
+        totalCustomer: registeredCustomersCount,
+        totalCustomers: registeredCustomersCount,
         lowStockItems: {
           threshold: LOW_STOCK_THRESHOLD,
           count: 0,
@@ -77,6 +234,10 @@ const getMetrics = async (req, res) => {
     let totalRevenue = 0;
     let monthlySales = 0;
     let monthlyRevenue = 0;
+    let weeklySales = 0;
+    let weeklyRevenue = 0;
+    let weeklyCost = 0;
+    let hasWeeklyCostData = true;
     let todaysSales = 0;
     let todaysRevenue = 0;
     let todaysCost = 0;
@@ -93,6 +254,7 @@ const getMetrics = async (req, res) => {
         startOfMonth,
         endOfMonth,
       );
+      const isWeeklyOrder = isBetweenDates(orderDate, startOfWeek, endOfWeek);
       let hasSellerItems = false;
 
       order.items.forEach((item) => {
@@ -116,6 +278,18 @@ const getMetrics = async (req, res) => {
               todaysCost += lineCost;
             } else {
               hasTodaysCostData = false;
+            }
+          }
+
+          if (isWeeklyOrder) {
+            weeklySales += itemQuantity;
+            weeklyRevenue += lineRevenue;
+
+            const weeklyLineCost = Number(item.costPrice?.amount);
+            if (Number.isFinite(weeklyLineCost) && weeklyLineCost >= 0) {
+              weeklyCost += weeklyLineCost;
+            } else {
+              hasWeeklyCostData = false;
             }
           }
 
@@ -156,6 +330,13 @@ const getMetrics = async (req, res) => {
       hasTodaysCostData && todaysSales > 0
         ? Number((todaysRevenue - todaysCost).toFixed(2))
         : hasTodaysCostData
+          ? 0
+          : null;
+
+    const weeklyProfitAmount =
+      hasWeeklyCostData && weeklySales > 0
+        ? Number((weeklyRevenue - weeklyCost).toFixed(2))
+        : hasWeeklyCostData
           ? 0
           : null;
 
@@ -205,13 +386,26 @@ const getMetrics = async (req, res) => {
           ? undefined
           : "Cost price data not available",
       },
+      weeklySales,
+      weeklyRevenue: {
+        amount: weeklyRevenue,
+        currency,
+      },
+      weeklyProfit: {
+        amount: weeklyProfitAmount,
+        currency,
+        available: hasWeeklyCostData,
+        message: hasWeeklyCostData
+          ? undefined
+          : "Cost price data not available",
+      },
       monthlySales,
       averageOrderValue: {
         amount: averageOrderValue,
         currency,
       },
-      totalCustomer: customerIds.size,
-      totalCustomers: customerIds.size,
+      totalCustomer: registeredCustomersCount,
+      totalCustomers: registeredCustomersCount,
       lowStockItems: {
         threshold: LOW_STOCK_THRESHOLD,
         count: lowStockProducts.length,
@@ -232,10 +426,16 @@ const getMetrics = async (req, res) => {
 
 const getOrders = async (req, res) => {
   try {
-    const seller = req.user;
+    const sellerId = getAuthenticatedUserId(req.user);
+    if (!sellerId) {
+      return res.status(401).json({ message: "Unauthorized: Invalid token payload" });
+    }
+
+    // Best-effort sync keeps historical orders mappable to user docs.
+    await syncUsersFromAuthService(req);
 
     // Get all products owned by this seller
-    const sellerProducts = await productModel.find({ owner: seller._id });
+    const sellerProducts = await productModel.find({ owner: sellerId });
     const productIds = sellerProducts.map((p) => p._id);
 
     if (productIds.length === 0) {
@@ -250,18 +450,19 @@ const getOrders = async (req, res) => {
       .find({
         "items.product": { $in: productIds },
       })
-      .populate("user", "name email")
+      .populate("user", "fullName username email")
       .populate("items.product")
       .sort({ createdAt: -1 });
 
     // Filter and format orders to show only seller's items
     const formattedOrders = orders.map((order) => {
       // Filter items to include only seller's products
-      const sellerItems = order.items.filter((item) =>
-        productIds.some(
+      const sellerItems = order.items.filter((item) => {
+        if (!item?.product?._id) return false;
+        return productIds.some(
           (pid) => pid.toString() === item.product._id.toString(),
-        ),
-      );
+        );
+      });
 
       // Calculate total for seller's items in this order
       const sellerTotal = sellerItems.reduce(
@@ -272,9 +473,11 @@ const getOrders = async (req, res) => {
       return {
         orderId: order._id,
         customer: {
-          id: order.user._id,
-          name: order.user.name,
-          email: order.user.email,
+          id: order.user?._id || null,
+          name:
+            order.customerName ||
+            getCustomerDisplayName(order.user, order.receipt?.customerName),
+          email: order.user?.email || order.customerEmail || "N/A",
         },
         items: sellerItems.map((item) => ({
           productId: item.product._id,
@@ -306,8 +509,11 @@ const getOrders = async (req, res) => {
 
 const getProducts = async (req, res) => {
   try {
-    const seller = req.user;
-    const products = await productModel.find({ owner: seller._id });
+    const sellerId = getAuthenticatedUserId(req.user);
+    if (!sellerId) {
+      return res.status(401).json({ message: "Unauthorized: Invalid token payload" });
+    }
+    const products = await productModel.find({ owner: sellerId });
     return res.status(200).json({
       products: products,
     });

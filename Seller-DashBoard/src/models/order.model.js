@@ -13,12 +13,14 @@ const OrderSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
       required: true,
     },
     items: [
       {
         product: {
           type: mongoose.Schema.Types.ObjectId,
+          ref: "product",
           required: true,
         },
         quantity: {
@@ -56,7 +58,10 @@ const OrderSchema = new mongoose.Schema(
       enum: [
         "PENDING",
         "CONFIRMED",
+        "PROCESSING",
+        "READY",
         "COMPLETED",
+        "REJECTED",
         "CANCELLED",
         "SHIPPED",
         "DELIVERED",
@@ -76,6 +81,37 @@ const OrderSchema = new mongoose.Schema(
     shippingAddress: {
       type: addressSchema,
       required: true,
+    },
+    receipt: {
+      filePath: {
+        type: String,
+      },
+      fileName: {
+        type: String,
+      },
+      generatedAt: {
+        type: Date,
+      },
+      paymentMethod: {
+        type: String,
+        default: "Razorpay",
+      },
+      paymentStatus: {
+        type: String,
+        default: "PAID",
+      },
+      paymentId: {
+        type: String,
+      },
+      customerName: {
+        type: String,
+      },
+    },
+    customerName: {
+      type: String,
+    },
+    customerEmail: {
+      type: String,
     },
   },
   { timestamps: true },

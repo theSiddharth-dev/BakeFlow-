@@ -1,12 +1,11 @@
 const mongoose = require("mongoose");
 
 const addressSchema = new mongoose.Schema({
-  // Define schema for address subdocument
-  street: String, // Street field as string
-  city: String, // City field as string
-  state: String, // State field as string
-  pincode: String, // pincode field as string (note: in code it's pincode, but validation uses pincode)
-  country: String, // Country field as string
+  street: String,
+  city: String,
+  state: String,
+  pincode: String,
+  country: String,
 });
 
 const OrderSchema = new mongoose.Schema(
@@ -57,6 +56,7 @@ const OrderSchema = new mongoose.Schema(
         "PENDING",
         "CONFIRMED",
         "PROCESSING",
+        "READY",
         "COMPLETED",
         "REJECTED",
         "CANCELLED",
@@ -95,12 +95,17 @@ const OrderSchema = new mongoose.Schema(
       },
       paymentStatus: {
         type: String,
-        default: "PAID",
       },
       paymentId: {
         type: String,
       },
       customerName: {
+        type: String,
+      },
+      imageKitUrl: {
+        type: String,
+      },
+      imageKitFileId: {
         type: String,
       },
     },

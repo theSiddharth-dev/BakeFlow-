@@ -1,5 +1,6 @@
 const { subscribeToQueue } = require("./broker");
 const { sendEmail } = require("../email");
+const axios = require("axios");
 
 module.exports = function () {
   subscribeToQueue("AUTH_NOTIFICATION.USER_CREATED", async (data) => {
@@ -310,7 +311,46 @@ module.exports = function () {
 </body>
 </html>
 `;
-    await sendEmail(data.email,"Payment Successful","We have received your payment for order ",paymentSuccessTemplate);
+    const attachments = [];
+
+    if (data.receiptAttachmentBase64) {
+      attachments.push({
+        filename: data.receiptFileName || `receipt-${data.orderId}.pdf`,
+        content: Buffer.from(data.receiptAttachmentBase64, "base64"),
+        contentType: "application/pdf",
+      });
+    } else if (data.receiptAuthToken && process.env.ORDER_SERVICE_URL) {
+      try {
+        const receiptResponse = await axios.get(
+          `${process.env.ORDER_SERVICE_URL}/api/orders/${data.orderId}/receipt`,
+          {
+            headers: {
+              Authorization: `Bearer ${data.receiptAuthToken}`,
+            },
+            responseType: "arraybuffer",
+          },
+        );
+
+        attachments.push({
+          filename: data.receiptFileName || `receipt-${data.orderId}.pdf`,
+          content: Buffer.from(receiptResponse.data),
+          contentType: "application/pdf",
+        });
+      } catch (receiptFetchErr) {
+        console.error(
+          "Unable to attach receipt in payment email:",
+          receiptFetchErr.message,
+        );
+      }
+    }
+
+    await sendEmail(
+      data.email,
+      "Payment Successful",
+      "We have received your payment for order ",
+      paymentSuccessTemplate,
+      attachments,
+    );
   });
 
 
