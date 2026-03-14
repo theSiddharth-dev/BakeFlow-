@@ -25,6 +25,7 @@ app.use(
         "http://localhost:3004",
         "https://auth-service-j068.onrender.com",
         "https://product-service-58x4.onrender.com/",
+        "https://cart-service-2gl6.onrender.com",
         ],
         accessControlAllowCredentials: true,  
         credentials: true,
