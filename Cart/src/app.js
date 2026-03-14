@@ -14,6 +14,7 @@ app.use(
     origin: [
         "http://localhost:5173",
         "http://localhost:3001",
+        "https://auth-service-j068.onrender.com",
         "https://product-service-58x4.onrender.com/"
         ],
         accessControlAllowCredentials: true,  
