@@ -4,14 +4,32 @@ const orderModel = require("../models/order.model");
 const paymentModel = require("../models/payment.model");
 const axios = require("axios");
 
-const VALID_SALES_STATUSES = ["CONFIRMED", "COMPLETED","READY", "DELIVERED", "SHIPPED"];
+const VALID_SALES_STATUSES = [
+  "CONFIRMED",
+  "COMPLETED",
+  "READY",
+  "DELIVERED",
+  "SHIPPED",
+];
 const LOW_STOCK_THRESHOLD = Number(process.env.LOW_STOCK_THRESHOLD || 5);
 const PRODUCT_SERVICE_URL =
   process.env.PRODUCT_SERVICE_URL || "http://localhost:3001/api/products";
 const AUTH_SERVICE_URL =
   process.env.AUTH_SERVICE_URL || "http://localhost:3000/api/auth";
 
+console.log(AUTH_SERVICE_URL, PRODUCT_SERVICE_URL);
+
 const getAuthenticatedUserId = (user) => user?.id || user?._id || null;
+const toSafeStringId = (value) => {
+  if (!value) return null;
+  if (typeof value === "string") return value;
+  if (value?._id) return toSafeStringId(value._id);
+  try {
+    return value.toString();
+  } catch {
+    return null;
+  }
+};
 
 const getCustomerDisplayName = (user, fallbackCustomerName) => {
   if (fallbackCustomerName) return fallbackCustomerName;
@@ -33,12 +51,16 @@ const getCustomerDisplayName = (user, fallbackCustomerName) => {
 
 const getSellerProducts = async (req, sellerId) => {
   const localProducts = await productModel.find({ owner: sellerId });
-  console.log(`[SellerDashboard] localProducts count: ${localProducts.length} for seller: ${sellerId}`);
+  console.log(
+    `[SellerDashboard] localProducts count: ${localProducts.length} for seller: ${sellerId}`,
+  );
 
   const authHeader = req.headers?.authorization;
 
   if (!authHeader) {
-    console.log("[SellerDashboard] No auth header — returning local products only");
+    console.log(
+      "[SellerDashboard] No auth header — returning local products only",
+    );
     return localProducts;
   }
 
@@ -58,7 +80,9 @@ const getSellerProducts = async (req, sellerId) => {
       ? response.data.data
       : [];
 
-    console.log(`[SellerDashboard] Product service returned ${sourceProducts.length} products`);
+    console.log(
+      `[SellerDashboard] Product service returned ${sourceProducts.length} products`,
+    );
 
     if (sourceProducts.length === 0) {
       return localProducts;
@@ -77,7 +101,10 @@ const getSellerProducts = async (req, sellerId) => {
 
     return sourceProducts;
   } catch (error) {
-    console.error(`[SellerDashboard] Product service API call failed: ${error.message}`, error.response?.status || "");
+    console.error(
+      `[SellerDashboard] Product service API call failed: ${error.message}`,
+      error.response?.status || "",
+    );
     return localProducts;
   }
 };
@@ -87,16 +114,21 @@ const syncUsersFromAuthService = async (req) => {
   if (!authHeader) return;
 
   try {
-    const response = await axios.get(`${AUTH_SERVICE_URL}/internal/user-emails`, {
-      headers: {
-        Authorization: authHeader,
+    const response = await axios.get(
+      `${AUTH_SERVICE_URL}/internal/user-emails`,
+      {
+        headers: {
+          Authorization: authHeader,
+        },
+        params: {
+          ts: Date.now(),
+        },
       },
-      params: {
-        ts: Date.now(),
-      },
-    });
+    );
 
-    const users = Array.isArray(response?.data?.users) ? response.data.users : [];
+    const users = Array.isArray(response?.data?.users)
+      ? response.data.users
+      : [];
 
     if (users.length === 0) return;
 
@@ -104,7 +136,8 @@ const syncUsersFromAuthService = async (req) => {
       users.map((user) => {
         if (!user?.id || !user?.email) return Promise.resolve();
 
-        const fallbackFirstName = (user.username || "Customer").trim() || "Customer";
+        const fallbackFirstName =
+          (user.username || "Customer").trim() || "Customer";
 
         return userModel.findByIdAndUpdate(
           user.id,
@@ -159,9 +192,13 @@ const getMetrics = async (req, res) => {
   try {
     const sellerId = getAuthenticatedUserId(req.user);
     if (!sellerId) {
-      return res.status(401).json({ message: "Unauthorized: Invalid token payload" });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Invalid token payload" });
     }
-    const registeredCustomersCount = await userModel.countDocuments({ role: "user" });
+    const registeredCustomersCount = await userModel.countDocuments({
+      role: "user",
+    });
     const now = new Date();
     const startOfToday = new Date(now);
     startOfToday.setHours(0, 0, 0, 0);
@@ -257,8 +294,9 @@ const getMetrics = async (req, res) => {
       const isWeeklyOrder = isBetweenDates(orderDate, startOfWeek, endOfWeek);
       let hasSellerItems = false;
 
-      order.items.forEach((item) => {
-        const productIdStr = item.product.toString();
+      (order.items || []).forEach((item) => {
+        const productIdStr = toSafeStringId(item?.product);
+        if (!productIdStr) return;
 
         // Check if this item belongs to seller's products
         if (productIdSet.has(productIdStr)) {
@@ -266,7 +304,7 @@ const getMetrics = async (req, res) => {
           const itemQuantity = Number(item.quantity || 0);
           const lineRevenue = Number(item.price?.amount || 0) * itemQuantity;
 
-          totalSales += item.quantity;
+          totalSales += itemQuantity;
           totalRevenue += lineRevenue;
 
           if (isTodayOrder) {
@@ -305,7 +343,7 @@ const getMetrics = async (req, res) => {
             existing.revenue += lineRevenue;
           } else {
             productSalesMap.set(productIdStr, {
-              productId: item.product,
+              productId: productIdStr,
               quantity: itemQuantity,
               revenue: lineRevenue,
             });
@@ -315,8 +353,9 @@ const getMetrics = async (req, res) => {
 
       if (hasSellerItems) {
         sellerOrderCount += 1;
-        if (order.user) {
-          customerIds.add(order.user.toString());
+        const customerId = toSafeStringId(order.user);
+        if (customerId) {
+          customerIds.add(customerId);
         }
       }
     });
@@ -348,11 +387,12 @@ const getMetrics = async (req, res) => {
     // Get product details for top products
     const topProducts = await Promise.all(
       topProductsData.map(async (data) => {
+        const topProductId = toSafeStringId(data.productId);
         const product = sellerProducts.find(
-          (p) => p._id.toString() === data.productId.toString(),
+          (p) => toSafeStringId(p?._id) === topProductId,
         );
         return {
-          productId: data.productId,
+          productId: topProductId,
           title: product?.title || "Unknown",
           quantitySold: data.quantity,
           revenue: {
@@ -428,7 +468,9 @@ const getOrders = async (req, res) => {
   try {
     const sellerId = getAuthenticatedUserId(req.user);
     if (!sellerId) {
-      return res.status(401).json({ message: "Unauthorized: Invalid token payload" });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Invalid token payload" });
     }
 
     // Best-effort sync keeps historical orders mappable to user docs.
@@ -457,16 +499,16 @@ const getOrders = async (req, res) => {
     // Filter and format orders to show only seller's items
     const formattedOrders = orders.map((order) => {
       // Filter items to include only seller's products
-      const sellerItems = order.items.filter((item) => {
-        if (!item?.product?._id) return false;
-        return productIds.some(
-          (pid) => pid.toString() === item.product._id.toString(),
-        );
+      const sellerItems = (order.items || []).filter((item) => {
+        const itemProductId = toSafeStringId(item?.product);
+        if (!itemProductId) return false;
+        return productIds.some((pid) => toSafeStringId(pid) === itemProductId);
       });
 
       // Calculate total for seller's items in this order
       const sellerTotal = sellerItems.reduce(
-        (sum, item) => sum + item.price.amount * item.quantity,
+        (sum, item) =>
+          sum + Number(item?.price?.amount || 0) * Number(item?.quantity || 0),
         0,
       );
 
@@ -480,11 +522,11 @@ const getOrders = async (req, res) => {
           email: order.user?.email || order.customerEmail || "N/A",
         },
         items: sellerItems.map((item) => ({
-          productId: item.product._id,
-          title: item.product.title,
-          quantity: item.quantity,
-          price: item.price,
-          image: item.product.image?.[0]?.url || null,
+          productId: toSafeStringId(item?.product),
+          title: item?.product?.title || "Unknown Product",
+          quantity: Number(item?.quantity || 0),
+          price: item?.price || { amount: 0, currency: "INR" },
+          image: item?.product?.image?.[0]?.url || null,
         })),
         status: order.status,
         shippingAddress: order.shippingAddress,
@@ -511,7 +553,9 @@ const getProducts = async (req, res) => {
   try {
     const sellerId = getAuthenticatedUserId(req.user);
     if (!sellerId) {
-      return res.status(401).json({ message: "Unauthorized: Invalid token payload" });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Invalid token payload" });
     }
     const products = await productModel.find({ owner: sellerId });
     return res.status(200).json({
