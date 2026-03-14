@@ -17,6 +17,7 @@ app.use(
         "https://auth-service-j068.onrender.com",
         "https://product-service-58x4.onrender.com/",
         "https://cart-service-2gl6.onrender.com",
+        "https://order-service-6rqj.onrender.com",
         ],
         accessControlAllowCredentials: true,  
         credentials: true,
