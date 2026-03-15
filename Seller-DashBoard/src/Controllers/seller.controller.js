@@ -18,7 +18,6 @@ const PRODUCT_SERVICE_URL =
 const AUTH_SERVICE_URL =
   process.env.AUTH_SERVICE_URL || "http://localhost:3000/api/auth";
 
-console.log(AUTH_SERVICE_URL, PRODUCT_SERVICE_URL);
 
 const getAuthenticatedUserId = (user) => user?.id || user?._id || null;
 const toSafeStringId = (value) => {

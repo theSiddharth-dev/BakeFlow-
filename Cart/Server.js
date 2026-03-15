@@ -5,7 +5,8 @@ const connectDB = require("./src/db/db");
 
 connectDB();
 
-app.listen(3002,()=>{
-    console.log("Cart Service is running on the port number 3002");
+const PORT = process.env.PORT 
+app.listen(PORT,()=>{
+    console.log(`Cart Service is running on the port number ${PORT}`);
 })
 

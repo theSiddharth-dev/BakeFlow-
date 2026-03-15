@@ -7,6 +7,7 @@ ConnecttoDb();
 
 Connect();
 
-app.listen(3004,()=>{
-    console.log("Payment service is running on port 3004");
+const PORT = process.env.PORT
+app.listen(PORT,()=>{
+    console.log(`Payment service is running on port ${PORT}`);
 })
