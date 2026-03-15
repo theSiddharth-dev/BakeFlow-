@@ -1,14 +1,16 @@
 require("dotenv").config();
-const app = require('./src/app');
+const app = require("./src/app");
 const connectDb = require("./src/db/db");
-const {Connect}  = require("./src/Broker/Broker")
-const listener = require("./src/Broker/Listener")
+const { Connect } = require("./src/Broker/Broker");
+const listener = require("./src/Broker/Listener");
 
-connectDb()
-Connect().then(()=>{
-    listener();
+connectDb();
+Connect().then(() => {
+  listener();
 })
 
-app.listen(3007,()=>{
-    console.log("Seller DashBoard Service is running on port number 3007")
-})
+const PORT = process.env.PORT
+
+app.listen(PORT, () => {
+  console.log(`Seller DashBoard Service is running on port number ${PORT} `);
+});
