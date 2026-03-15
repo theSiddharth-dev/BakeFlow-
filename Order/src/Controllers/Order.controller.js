@@ -8,6 +8,17 @@ const { generateReceiptPdf } = require("../services/receipt.service");
 const { uploadReceiptToImageKit } = require("../services/receipt.service");
 
 const TAX_RATE = 0.18;
+const PRODUCT_BASE_URL = (process.env.PRODUCT_SERVICE_URL || "").replace(
+  /\/+$/,
+  "",
+);
+const PRODUCT_API_URL = PRODUCT_BASE_URL.endsWith("/api/products")
+  ? PRODUCT_BASE_URL
+  : `${PRODUCT_BASE_URL}/api/products`;
+const CART_BASE_URL = (process.env.CART_SERVICE_URL || "").replace(/\/+$/, "");
+const CART_API_URL = CART_BASE_URL.endsWith("/api/cart")
+  ? CART_BASE_URL
+  : `${CART_BASE_URL}/api/cart`;
 const OWNER_VISIBLE_STATUSES = [
   "CONFIRMED",
   "PROCESSING",
@@ -55,12 +66,9 @@ const fetchProductMapByIds = async (productIds = [], token) => {
 
   const productEntries = await Promise.all(
     uniqueProductIds.map(async (productId) => {
-      const response = await axios.get(
-        `${process.env.PRODUCT_SERVICE_URL}/${productId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const response = await axios.get(`${PRODUCT_API_URL}/${productId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       return [productId.toString(), response.data?.product || null];
     }),
@@ -230,12 +238,9 @@ const createOrder = async (req, res) => {
 
   try {
     // 1️⃣ Fetch cart items
-    const cartResponse = await axios.get(
-      `${process.env.CART_SERVICE_URL}/items`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    );
+    const cartResponse = await axios.get(`${CART_API_URL}/items`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
     const cartItems = cartResponse.data.items;
 
@@ -247,7 +252,7 @@ const createOrder = async (req, res) => {
 
     // 2️⃣ Fetch all product details
     const productRequests = cartItems.map((item) =>
-      axios.get(`${process.env.PRODUCT_SERVICE_URL}/${item.productId}`, {
+      axios.get(`${PRODUCT_API_URL}/${item.productId}`, {
         headers: { Authorization: `Bearer ${token}` },
       }),
     );
@@ -310,7 +315,7 @@ const createOrder = async (req, res) => {
 
     // 5️⃣ Reserve inventory
     await axios.post(
-      `${process.env.PRODUCT_SERVICE_URL}/inventory/reserve`,
+      `${PRODUCT_API_URL}/inventory/reserve`,
       { items: inventoryItems },
       {
         headers: { Authorization: `Bearer ${token}` },
@@ -334,7 +339,7 @@ const createOrder = async (req, res) => {
     } catch (orderCreateError) {
       // 7️⃣ Release inventory if order fails
       await axios.post(
-        `${process.env.PRODUCT_SERVICE_URL}/inventory/release`,
+        `${PRODUCT_API_URL}/inventory/release`,
         { items: inventoryItems },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -544,7 +549,7 @@ const ownerUpdateOrderStatus = async (req, res) => {
       const inventoryItems = mapInventoryItems(order.items);
 
       await axios.post(
-        `${process.env.PRODUCT_SERVICE_URL}/inventory/release`,
+        `${PRODUCT_API_URL}/inventory/release`,
         { items: inventoryItems },
         {
           headers: {
@@ -834,7 +839,7 @@ const cancelOrderById = async (req, res) => {
     }));
 
     await axios.post(
-      `${process.env.PRODUCT_SERVICE_URL}/inventory/release`,
+      `${PRODUCT_API_URL}/inventory/release`,
       { items: inventoryItems },
       {
         headers: {
@@ -850,7 +855,7 @@ const cancelOrderById = async (req, res) => {
     } catch (saveError) {
       try {
         await axios.post(
-          `${process.env.PRODUCT_SERVICE_URL}/inventory/reserve`,
+          `${PRODUCT_API_URL}/inventory/reserve`,
           { items: inventoryItems },
           {
             headers: {
