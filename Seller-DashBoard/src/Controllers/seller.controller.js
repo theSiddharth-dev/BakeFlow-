@@ -30,6 +30,7 @@ const toSafeStringId = (value) => {
     return null;
   }
 };
+const asArray = (value) => (Array.isArray(value) ? value : []);
 
 const getCustomerDisplayName = (user, fallbackCustomerName) => {
   if (fallbackCustomerName) return fallbackCustomerName;
@@ -212,7 +213,9 @@ const getMetrics = async (req, res) => {
 
     // Get all products owned by this seller
     const sellerProducts = await getSellerProducts(req, sellerId);
-    const productIds = sellerProducts.map((p) => p._id);
+    const productIds = asArray(sellerProducts)
+      .map((p) => p?._id)
+      .filter((id) => Boolean(toSafeStringId(id)));
     const currency = sellerProducts[0]?.price?.currency || "INR";
 
     const lowStockProducts = sellerProducts
@@ -258,7 +261,7 @@ const getMetrics = async (req, res) => {
       });
     }
 
-    const productIdSet = new Set(productIds.map((id) => id.toString()));
+    const productIdSet = new Set(productIds.map((id) => toSafeStringId(id)));
 
     // Get all orders containing seller's products
     const orders = await orderModel.find({
@@ -294,7 +297,7 @@ const getMetrics = async (req, res) => {
       const isWeeklyOrder = isBetweenDates(orderDate, startOfWeek, endOfWeek);
       let hasSellerItems = false;
 
-      (order.items || []).forEach((item) => {
+      asArray(order?.items).forEach((item) => {
         const productIdStr = toSafeStringId(item?.product);
         if (!productIdStr) return;
 
@@ -478,7 +481,9 @@ const getOrders = async (req, res) => {
 
     // Get all products owned by this seller
     const sellerProducts = await productModel.find({ owner: sellerId });
-    const productIds = sellerProducts.map((p) => p._id);
+    const productIds = asArray(sellerProducts)
+      .map((p) => p?._id)
+      .filter((id) => Boolean(toSafeStringId(id)));
 
     if (productIds.length === 0) {
       return res.status(200).json({
@@ -499,7 +504,7 @@ const getOrders = async (req, res) => {
     // Filter and format orders to show only seller's items
     const formattedOrders = orders.map((order) => {
       // Filter items to include only seller's products
-      const sellerItems = (order.items || []).filter((item) => {
+      const sellerItems = asArray(order?.items).filter((item) => {
         const itemProductId = toSafeStringId(item?.product);
         if (!itemProductId) return false;
         return productIds.some((pid) => toSafeStringId(pid) === itemProductId);
