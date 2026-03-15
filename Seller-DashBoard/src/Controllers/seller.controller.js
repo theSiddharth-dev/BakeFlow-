@@ -471,7 +471,7 @@ const getMetrics = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching metrics:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message:error.message });
   }
 };
 
