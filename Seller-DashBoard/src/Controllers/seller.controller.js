@@ -18,7 +18,7 @@ const PRODUCT_SERVICE_URL =
 const AUTH_SERVICE_URL =
   process.env.AUTH_SERVICE_URL || "http://localhost:3000/api/auth";
 
-
+console.log(PRODUCT_SERVICE_URL, AUTH_SERVICE_URL);
 const getAuthenticatedUserId = (user) => user?.id || user?._id || null;
 const toSafeStringId = (value) => {
   if (!value) return null;
@@ -305,13 +305,15 @@ const getMetrics = async (req, res) => {
       let hasSellerItems = false;
 
       asArray(order?.items).forEach((item) => {
+        if (!item) return;
+
         const productIdStr = toSafeStringId(item?.product);
         if (!productIdStr) return;
 
         // Check if this item belongs to seller's products
         if (productIdSet.has(productIdStr)) {
           hasSellerItems = true;
-          const itemQuantity = Number(item.quantity || 0);
+          const itemQuantity = Number(item?.quantity || 0);
           const lineRevenue = Number(item.price?.amount || 0) * itemQuantity;
 
           totalSales += itemQuantity;
@@ -321,7 +323,7 @@ const getMetrics = async (req, res) => {
             todaysSales += itemQuantity;
             todaysRevenue += lineRevenue;
 
-            const lineCost = Number(item.costPrice?.amount);
+            const lineCost = Number(item?.costPrice?.amount);
             if (Number.isFinite(lineCost) && lineCost >= 0) {
               todaysCost += lineCost;
             } else {
@@ -333,7 +335,7 @@ const getMetrics = async (req, res) => {
             weeklySales += itemQuantity;
             weeklyRevenue += lineRevenue;
 
-            const weeklyLineCost = Number(item.costPrice?.amount);
+            const weeklyLineCost = Number(item?.costPrice?.amount);
             if (Number.isFinite(weeklyLineCost) && weeklyLineCost >= 0) {
               weeklyCost += weeklyLineCost;
             } else {
