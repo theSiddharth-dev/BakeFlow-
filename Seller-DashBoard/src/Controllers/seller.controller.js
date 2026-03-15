@@ -3,6 +3,7 @@ const productModel = require("../models/product.model");
 const orderModel = require("../models/order.model");
 const paymentModel = require("../models/payment.model");
 const axios = require("axios");
+const mongoose = require("mongoose");
 
 const VALID_SALES_STATUSES = [
   "CONFIRMED",
@@ -31,6 +32,12 @@ const toSafeStringId = (value) => {
   }
 };
 const asArray = (value) => (Array.isArray(value) ? value : []);
+const toObjectIds = (values) => {
+  return asArray(values)
+    .map((value) => toSafeStringId(value))
+    .filter((id) => id && mongoose.Types.ObjectId.isValid(id))
+    .map((id) => new mongoose.Types.ObjectId(id));
+};
 
 const getCustomerDisplayName = (user, fallbackCustomerName) => {
   if (fallbackCustomerName) return fallbackCustomerName;
@@ -213,9 +220,10 @@ const getMetrics = async (req, res) => {
 
     // Get all products owned by this seller
     const sellerProducts = await getSellerProducts(req, sellerId);
-    const productIds = asArray(sellerProducts)
+    const rawProductIds = asArray(sellerProducts)
       .map((p) => p?._id)
       .filter((id) => Boolean(toSafeStringId(id)));
+    const productIds = toObjectIds(rawProductIds);
     const currency = sellerProducts[0]?.price?.currency || "INR";
 
     const lowStockProducts = sellerProducts
@@ -481,9 +489,10 @@ const getOrders = async (req, res) => {
 
     // Get all products owned by this seller
     const sellerProducts = await productModel.find({ owner: sellerId });
-    const productIds = asArray(sellerProducts)
+    const rawProductIds = asArray(sellerProducts)
       .map((p) => p?._id)
       .filter((id) => Boolean(toSafeStringId(id)));
+    const productIds = toObjectIds(rawProductIds);
 
     if (productIds.length === 0) {
       return res.status(200).json({
