@@ -19,6 +19,12 @@ router.get("/me", authMiddleware.authMiddleware, Authcontroller.getCurrentUser);
 
 router.get("/logout", authMiddleware.authMiddleware, Authcontroller.logoutUser); // Define GET route for logout, requires auth
 
+router.delete(
+  "/users/me",
+  authMiddleware.authMiddleware,
+  Authcontroller.deleteCurrentUser,
+);
+
 // Address routes
 router.get(
   // Define GET route for user's addresses
@@ -53,6 +59,12 @@ router.get(
   "/internal/user-emails",
   authMiddleware.authMiddleware,
   Authcontroller.getUserEmailsForNotifications,
+);
+
+router.get(
+  "/internal/users/:id",
+  authMiddleware.authMiddleware,
+  Authcontroller.getInternalUserById,
 );
 
 module.exports = router; // Export the router

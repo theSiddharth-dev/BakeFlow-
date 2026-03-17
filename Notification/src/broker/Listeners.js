@@ -112,7 +112,7 @@ module.exports = function () {
     );
   });
 
-  subscribeToQueue("PAYMENT_NOTIFICATION.PAYMENT_INITIATED",async (data)=>{
+  subscribeToQueue("PAYMENT_NOTIFICATION.PAYMENT_INITIATED", async (data) => {
     const emailHtmlTemplate = `
     <!DOCTYPE html>
 <html>
@@ -186,10 +186,14 @@ module.exports = function () {
 
 </body>
 </html>
-    `
-    await sendEmail(data.email,"Payment Initiated","Your payment is being processed",emailHtmlTemplate);
-
-  })
+    `;
+    await sendEmail(
+      data.email,
+      "Payment Initiated",
+      "Your payment is being processed",
+      emailHtmlTemplate,
+    );
+  });
 
   subscribeToQueue("PAYMENT_NOTIFICATION.PAYMENT_COMPLETED", async (data) => {
     const paymentSuccessTemplate = `
@@ -353,8 +357,7 @@ module.exports = function () {
     );
   });
 
-
-  subscribeToQueue("PAYMENT_NOTIFICATION.PAYMENT_FAILED", async (data)=>{
+  subscribeToQueue("PAYMENT_NOTIFICATION.PAYMENT_FAILED", async (data) => {
     const paymentFailedTemplate = `
     <h1> Payment Failed </h1>
     <p> Dear ${data.username},</p>
@@ -363,12 +366,15 @@ module.exports = function () {
     <p> Best regards,<Br/> The BakeFlow Team </p>
     `;
 
-    await sendEmail(data.email,"Payment Failed","Your payment could not be processed", paymentFailedTemplate);
-  })
+    await sendEmail(
+      data.email,
+      "Payment Failed",
+      "Your payment could not be processed",
+      paymentFailedTemplate,
+    );
+  });
 
-  subscribeToQueue("PRODUCT_NOTIFICATION.PRODUCT_CREATED",async (data)=>
-    {
-
+  subscribeToQueue("PRODUCT_NOTIFICATION.PRODUCT_CREATED", async (data) => {
     const emailHtmlTemplate = `
     <!DOCTYPE html>
 <html>
@@ -472,7 +478,59 @@ module.exports = function () {
 
 </body>
 </html>
-    `
-  await sendEmail(data.email,"New Product Launched","Check out our latest product",emailHtmlTemplate);
-  })
+    `;
+    await sendEmail(
+      data.email,
+      "New Product Launched",
+      "Check out our latest product",
+      emailHtmlTemplate,
+    );
+  });
+
+  subscribeToQueue("ORDER_NOTIFICATION.ORDER_READY", async (data) => {
+    const readyTemplate = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Your Order Is Ready</title>
+</head>
+<body style="margin:0;padding:0;background:#f8f6f3;font-family:Arial,sans-serif;">
+  <table align="center" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;margin:20px auto;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+    <tr>
+      <td style="background:#2f855a;padding:20px;text-align:center;color:#ffffff;">
+        <h1 style="margin:0;font-size:24px;">BakeFlow</h1>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:24px;color:#333333;">
+        <h2 style="margin-top:0;">Hi ${data.username || "Customer"}, your order is ready</h2>
+        <p style="line-height:1.6;color:#555555;">
+          Great news. Your order <strong>${data.orderId}</strong> is now <strong>READY</strong>.
+        </p>
+        <p style="line-height:1.6;color:#555555;">
+          Please check your orders page for the latest status and next updates.
+        </p>
+        <p style="margin-top:24px;color:#777777;font-size:13px;">
+          Updated on: ${new Date(data.updatedAt || Date.now()).toLocaleString()}
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td style="background:#f3f3f3;padding:14px;text-align:center;font-size:12px;color:#999999;">
+        © 2026 BakeFlow. All rights reserved.
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+    `;
+
+    await sendEmail(
+      data.email,
+      "Your BakeFlow order is READY",
+      `Your order ${data.orderId} is ready.`,
+      readyTemplate,
+    );
+  });
 };

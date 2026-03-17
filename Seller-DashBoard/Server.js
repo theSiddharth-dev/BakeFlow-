@@ -9,7 +9,7 @@ Connect().then(() => {
   listener();
 })
 
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 3007
 
 app.listen(PORT, () => {
   console.log(`Seller DashBoard Service is running on port number ${PORT} `);

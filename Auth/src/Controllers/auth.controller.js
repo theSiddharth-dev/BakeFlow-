@@ -15,6 +15,7 @@ const registerUser = async (req, res) => {
       password,
       fullName: { firstName, lastName },
       role,
+      address,
     } = req.body;
 
     const isUserAlreadyexist = await userModel.findOne({
@@ -38,6 +39,7 @@ const registerUser = async (req, res) => {
       password: hashPassword, // Store hashed password
       fullName: { firstName, lastName },
       role: role || "user", // Set role, default to 'user'
+      address: Array.isArray(address) ? address : [],
     });
 
     // put the data Notification Queue
@@ -180,6 +182,41 @@ const logoutUser = async (req, res) => {
     // Catch errors
     console.error("Error in logout:", err); // Log error
     res.status(500).json({ message: "Internal server error" }); // Return error
+  }
+};
+
+const deleteCurrentUser = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized User",
+      });
+    }
+
+    const deletedUser = await userModel.findByIdAndDelete(userId);
+
+    if (!deletedUser) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    await publishtoQueue("AUTH_SELLER_DASHBOARD.USER_DELETED", {
+      id: deletedUser._id,
+      role: deletedUser.role,
+      email: deletedUser.email,
+    });
+
+    return res.status(200).json({
+      message: "Account deleted successfully",
+    });
+  } catch (err) {
+    console.error("Error in deleteCurrentUser:", err);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
   }
 };
 
@@ -384,15 +421,61 @@ const getUserEmailsForNotifications = async (req, res) => {
   }
 };
 
+const getInternalUserById = async (req, res) => {
+  try {
+    if (req.user?.role !== "owner") {
+      return res.status(403).json({
+        message: "Forbidden: Only owners can access this endpoint",
+      });
+    }
+
+    const userId = req.params.id;
+
+    if (!userId) {
+      return res.status(400).json({
+        message: "User id is required",
+      });
+    }
+
+    const user = await userModel
+      .findById(userId)
+      .select("email username fullName role")
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      user: {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        fullName: user.fullName,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   // Export the controller functions
   registerUser,
   loginUser,
   getCurrentUser,
   logoutUser,
+  deleteCurrentUser,
   getAddresses,
   addAddress,
   removeAddress,
   changePassword,
   getUserEmailsForNotifications,
+  getInternalUserById,
 };

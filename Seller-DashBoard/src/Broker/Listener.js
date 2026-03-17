@@ -9,6 +9,13 @@ module.exports = async function () {
     await userModel.create(user);
   });
 
+  subscribeToQueue("AUTH_SELLER_DASHBOARD.USER_DELETED", async (data) => {
+    const userId = data?.id || data?._id;
+    if (!userId) return;
+
+    await userModel.findByIdAndDelete(userId);
+  });
+
   subscribeToQueue(
     "PRODUCT_SELLER_DASHBOARD.PRODUCT_CREATED",
     async (product) => {

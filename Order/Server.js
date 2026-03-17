@@ -8,5 +8,5 @@ Connect();
 
 const PORT = process.env.PORT 
 app.listen(PORT, ()=>{
-    console.log(`Order service is running on port number${PORT} `)
+    console.log(`Order service is running on port number ${PORT} `)
 })

@@ -8,13 +8,13 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://auth-service-j068.onrender.com/",
-      "https://product-service-58x4.onrender.com",
-      "https://cart-service-2gl6.onrender.com",
-      "https://order-service-6rqj.onrender.com",
-      "https://payment-service-vz31.onrender.com",
-      "https://notification-service-z4zn.onrender.com",
-      "https://seller-dashboard-service.onrender.com"
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:3002",
+      "http://localhost:3003",
+      "http://localhost:3004",
+      "http://localhost:3006",
+      "http://localhost:3007"
     ],
     accessControlAllowCredentials:true,
     credentials: true,

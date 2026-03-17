@@ -16,8 +16,7 @@ const cartSchema = new mongoose.Schema(
           type: Number,
           required: true,
           min: 0,
-          // Allow 0 to support tests that create zero-quantity items directly.
-          // API-level validation still enforces qty > 0 for new items.
+          
         },
       },
     ],

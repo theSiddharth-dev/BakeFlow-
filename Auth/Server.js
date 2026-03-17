@@ -3,7 +3,7 @@ const app = require("./src/app");
 const { Connect } = require("./src/Broker/Broker");
 const ConnecttoDB = require("./src/db/db");
 
-// connect to auth database
+// connect to authentication service database
 ConnecttoDB();
 
 // Make the connection with RabbitMQ for notification

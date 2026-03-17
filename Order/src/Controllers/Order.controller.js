@@ -19,6 +19,12 @@ const CART_BASE_URL = (process.env.CART_SERVICE_URL || "").replace(/\/+$/, "");
 const CART_API_URL = CART_BASE_URL.endsWith("/api/cart")
   ? CART_BASE_URL
   : `${CART_BASE_URL}/api/cart`;
+const AUTH_BASE_URL = (
+  process.env.AUTH_SERVICE_URL || "http://localhost:3000"
+).replace(/\/+$/, "");
+const AUTH_API_URL = AUTH_BASE_URL.endsWith("/api/auth")
+  ? AUTH_BASE_URL
+  : `${AUTH_BASE_URL}/api/auth`;
 const OWNER_VISIBLE_STATUSES = [
   "CONFIRMED",
   "PROCESSING",
@@ -42,6 +48,41 @@ const OWNER_ACTIONS = {
 
 const publishOrderUpdateForSellerDashboard = async (order) => {
   await publishtoQueue("ORDER_SELLER_DASHBOARD.ORDER_UPDATED", order);
+};
+
+const publishOrderReadyNotification = async ({ order, token }) => {
+  if (!order?.user) return;
+
+  try {
+    const response = await axios.get(
+      `${AUTH_API_URL}/internal/users/${order.user.toString()}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    const user = response?.data?.user;
+    if (!user?.email) return;
+
+    await publishtoQueue("ORDER_NOTIFICATION.ORDER_READY", {
+      orderId: order._id,
+      userId: user.id,
+      email: user.email,
+      username:
+        user.username ||
+        [user?.fullName?.firstName, user?.fullName?.lastName]
+          .filter(Boolean)
+          .join(" ")
+          .trim() ||
+        "Customer",
+      status: order.status,
+      updatedAt: order.updatedAt,
+    });
+  } catch (err) {
+    console.error("Unable to publish READY notification:", err.message);
+  }
 };
 
 const mapOrderStatusForOwner = (status) => {
@@ -622,6 +663,10 @@ const ownerUpdateOrderStatus = async (req, res) => {
     order.status = targetStatus;
     await order.save();
     await publishOrderUpdateForSellerDashboard(order);
+
+    if (targetStatus === "READY") {
+      await publishOrderReadyNotification({ order, token });
+    }
 
     return res.status(200).json({
       message: `Order moved to ${targetStatus}`,
