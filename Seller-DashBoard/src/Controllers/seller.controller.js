@@ -4,7 +4,7 @@ const orderModel = require("../models/order.model");
 const paymentModel = require("../models/payment.model");
 const axios = require("axios");
 
-const VALID_SALES_STATUSES = ["CONFIRMED", "COMPLETED","READY", "DELIVERED", "SHIPPED"];
+const VALID_SALES_STATUSES = ["COMPLETED"];
 const LOW_STOCK_THRESHOLD = Number(process.env.LOW_STOCK_THRESHOLD || 5);
 const PRODUCT_SERVICE_URL =
   process.env.PRODUCT_SERVICE_URL || "http://localhost:3001/api/products";
@@ -34,9 +34,7 @@ const getCustomerDisplayName = (user, fallbackCustomerName) => {
 const getSellerProducts = async (req, sellerId) => {
   const localProducts = await productModel.find({ owner: sellerId });
 
-
   const authHeader = req.headers?.authorization;
-
 
   try {
     const response = await axios.get(`${PRODUCT_SERVICE_URL}/owner`, {
@@ -54,7 +52,9 @@ const getSellerProducts = async (req, sellerId) => {
       ? response.data.data
       : [];
 
-    console.log(`[SellerDashboard] Product service returned ${sourceProducts.length} products`);
+    console.log(
+      `[SellerDashboard] Product service returned ${sourceProducts.length} products`,
+    );
 
     if (sourceProducts.length === 0) {
       return localProducts;
@@ -73,7 +73,10 @@ const getSellerProducts = async (req, sellerId) => {
 
     return sourceProducts;
   } catch (error) {
-    console.error(`[SellerDashboard] Product service API call failed: ${error.message}`, error.response?.status || "");
+    console.error(
+      `[SellerDashboard] Product service API call failed: ${error.message}`,
+      error.response?.status || "",
+    );
     return localProducts;
   }
 };
@@ -83,16 +86,21 @@ const syncUsersFromAuthService = async (req) => {
   if (!authHeader) return;
 
   try {
-    const response = await axios.get(`${AUTH_SERVICE_URL}/internal/user-emails`, {
-      headers: {
-        Authorization: authHeader,
+    const response = await axios.get(
+      `${AUTH_SERVICE_URL}/internal/user-emails`,
+      {
+        headers: {
+          Authorization: authHeader,
+        },
+        params: {
+          ts: Date.now(),
+        },
       },
-      params: {
-        ts: Date.now(),
-      },
-    });
+    );
 
-    const users = Array.isArray(response?.data?.users) ? response.data.users : [];
+    const users = Array.isArray(response?.data?.users)
+      ? response.data.users
+      : [];
 
     if (users.length === 0) return;
 
@@ -100,7 +108,8 @@ const syncUsersFromAuthService = async (req) => {
       users.map((user) => {
         if (!user?.id || !user?.email) return Promise.resolve();
 
-        const fallbackFirstName = (user.username || "Customer").trim() || "Customer";
+        const fallbackFirstName =
+          (user.username || "Customer").trim() || "Customer";
 
         return userModel.findByIdAndUpdate(
           user.id,
@@ -135,29 +144,28 @@ const isBetweenDates = (dateValue, startDate, endDate) => {
   return date >= startDate && date <= endDate;
 };
 
-const getWeekRange = (dateValue) => {
-  const date = new Date(dateValue);
-  const day = date.getDay();
-  const mondayOffset = day === 0 ? -6 : 1 - day;
+const getLastSevenDaysRange = (dateValue) => {
+  const endOfRange = new Date(dateValue);
+  endOfRange.setHours(23, 59, 59, 999);
 
-  const startOfWeek = new Date(date);
-  startOfWeek.setDate(date.getDate() + mondayOffset);
-  startOfWeek.setHours(0, 0, 0, 0);
+  const startOfRange = new Date(dateValue);
+  startOfRange.setDate(startOfRange.getDate() - 6);
+  startOfRange.setHours(0, 0, 0, 0);
 
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 6);
-  endOfWeek.setHours(23, 59, 59, 999);
-
-  return { startOfWeek, endOfWeek };
+  return { startOfRange, endOfRange };
 };
 
 const getMetrics = async (req, res) => {
   try {
     const sellerId = getAuthenticatedUserId(req.user);
     if (!sellerId) {
-      return res.status(401).json({ message: "Unauthorized: Invalid token payload" });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Invalid token payload" });
     }
-    const registeredCustomersCount = await userModel.countDocuments({ role: "user" });
+    const registeredCustomersCount = await userModel.countDocuments({
+      role: "user",
+    });
     const now = new Date();
     const startOfToday = new Date(now);
     startOfToday.setHours(0, 0, 0, 0);
@@ -167,7 +175,7 @@ const getMetrics = async (req, res) => {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     endOfMonth.setHours(23, 59, 59, 999);
-    const { startOfWeek, endOfWeek } = getWeekRange(now);
+    const { startOfRange, endOfRange } = getLastSevenDaysRange(now);
 
     // Get all products owned by this seller
     const sellerProducts = await getSellerProducts(req, sellerId);
@@ -250,8 +258,12 @@ const getMetrics = async (req, res) => {
         startOfMonth,
         endOfMonth,
       );
-      const isWeeklyOrder = isBetweenDates(orderDate, startOfWeek, endOfWeek);
+      const isWeeklyOrder = isBetweenDates(orderDate, startOfRange, endOfRange);
       let hasSellerItems = false;
+      let orderWeeklyCost = 0;
+      let orderTodayCost = 0;
+      let hasOrderWeeklyCostData = true;
+      let hasOrderTodayCostData = true;
 
       order.items.forEach((item) => {
         const productIdStr = item.product.toString();
@@ -266,31 +278,28 @@ const getMetrics = async (req, res) => {
           totalRevenue += lineRevenue;
 
           if (isTodayOrder) {
-            todaysSales += itemQuantity;
             todaysRevenue += lineRevenue;
 
             const lineCost = Number(item.costPrice?.amount);
             if (Number.isFinite(lineCost) && lineCost >= 0) {
-              todaysCost += lineCost;
+              orderTodayCost += lineCost;
             } else {
-              hasTodaysCostData = false;
+              hasOrderTodayCostData = false;
             }
           }
 
           if (isWeeklyOrder) {
-            weeklySales += itemQuantity;
             weeklyRevenue += lineRevenue;
 
             const weeklyLineCost = Number(item.costPrice?.amount);
             if (Number.isFinite(weeklyLineCost) && weeklyLineCost >= 0) {
-              weeklyCost += weeklyLineCost;
+              orderWeeklyCost += weeklyLineCost;
             } else {
-              hasWeeklyCostData = false;
+              hasOrderWeeklyCostData = false;
             }
           }
 
           if (isMonthlyOrder) {
-            monthlySales += itemQuantity;
             monthlyRevenue += lineRevenue;
           }
 
@@ -305,17 +314,46 @@ const getMetrics = async (req, res) => {
               quantity: itemQuantity,
               revenue: lineRevenue,
             });
-          };
+          }
         }
       });
 
       if (hasSellerItems) {
         sellerOrderCount += 1;
-        if (order.user) {
-          customerIds.add(order.user.toString());
+
+        if (isTodayOrder) {
+          todaysSales += 1;
+          if (hasOrderTodayCostData) {
+            todaysCost += orderTodayCost;
+          } else {
+            hasTodaysCostData = false;
+          }
+        }
+
+        if (isWeeklyOrder) {
+          weeklySales += 1;
+          if (hasOrderWeeklyCostData) {
+            weeklyCost += orderWeeklyCost;
+          } else {
+            hasWeeklyCostData = false;
+          }
+        }
+
+        if (isMonthlyOrder) {
+          monthlySales += 1;
+        }
+
+        const customerId = order.user ? String(order.user) : "";
+        const customerEmail = String(order.customerEmail || "")
+          .trim()
+          .toLowerCase();
+        if (customerId) {
+          customerIds.add(`id:${customerId}`);
+        } else if (customerEmail) {
+          customerIds.add(`email:${customerEmail}`);
         }
       }
-    })
+    });
 
     const averageOrderValue =
       sellerOrderCount > 0
@@ -424,7 +462,9 @@ const getOrders = async (req, res) => {
   try {
     const sellerId = getAuthenticatedUserId(req.user);
     if (!sellerId) {
-      return res.status(401).json({ message: "Unauthorized: Invalid token payload" });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Invalid token payload" });
     }
 
     // Best-effort sync keeps historical orders mappable to user docs.
@@ -507,7 +547,9 @@ const getProducts = async (req, res) => {
   try {
     const sellerId = getAuthenticatedUserId(req.user);
     if (!sellerId) {
-      return res.status(401).json({ message: "Unauthorized: Invalid token payload" });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: Invalid token payload" });
     }
     const products = await productModel.find({ owner: sellerId });
     return res.status(200).json({

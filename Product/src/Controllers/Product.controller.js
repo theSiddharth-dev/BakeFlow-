@@ -16,6 +16,7 @@ const publishProductDeleted = async (productId) => {
 
 const AUTH_SERVICE_URL =
   process.env.AUTH_SERVICE_URL || "http://localhost:3000/api/auth";
+const LOW_STOCK_THRESHOLD = Number(process.env.LOW_STOCK_THRESHOLD || 5);
 
 const fetchNotificationRecipients = async (token) => {
   if (!token) return [];
@@ -408,6 +409,40 @@ const getProductsByOwner = async (req, res) => {
   }
 };
 
+const getLowStockNotifications = async (req, res) => {
+  try {
+    const thresholdQuery = Number(req.query?.threshold);
+    const threshold = Number.isFinite(thresholdQuery)
+      ? Math.max(0, thresholdQuery)
+      : LOW_STOCK_THRESHOLD;
+
+    const products = await productModel
+      .find({ owner: req.user.id, stock: { $lte: threshold } })
+      .sort({ stock: 1, updatedAt: -1, createdAt: -1 })
+      .lean();
+
+    const message =
+      "This product is having less stock reorder it and keep the stock healthy.";
+
+    const notifications = products.map((product) => ({
+      productId: product._id,
+      title: product.title || "Unnamed Product",
+      image: product?.image?.[0]?.thumbnail || product?.image?.[0]?.url || null,
+      stock: Number(product?.stock || 0),
+      message,
+      threshold,
+    }));
+
+    return res.status(200).json({
+      threshold,
+      count: notifications.length,
+      notifications,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   createProduct,
   getProducts,
@@ -417,4 +452,5 @@ module.exports = {
   releaseInventory,
   deleteProduct,
   getProductsByOwner,
+  getLowStockNotifications,
 };

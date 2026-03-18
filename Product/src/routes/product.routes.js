@@ -29,6 +29,13 @@ router.get(
   productController.getProductsByOwner,
 );
 
+// GET /api/products/owner/low-stock
+router.get(
+  "/owner/low-stock",
+  createAuthMiddleware(["owner"]),
+  productController.getLowStockNotifications,
+);
+
 // POST /api/products/inventory/reserve
 router.post(
   "/inventory/reserve",
@@ -51,8 +58,7 @@ router.patch(
   "/:id",
   createAuthMiddleware(["owner"]),
   productController.updateProduct,
-
-)
+);
 
 router.delete(
   "/:id",
