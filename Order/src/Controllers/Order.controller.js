@@ -328,19 +328,20 @@ const createOrder = async (req, res) => {
         (p) => p._id.toString() === item.productId.toString(),
       );
 
-      const itemTotal = product.price.amount * item.quantity;
-      priceAmount += itemTotal;
+      const itemPrice = product.price.amount;
+const itemTotal = itemPrice * item.quantity;
+
+priceAmount += itemTotal;
 
       return {
         product: item.productId,
-        quantity: item.quantity,
-        price: {
-          amount: itemTotal,
-          currency: product.price.currency,
-        },
+  quantity: item.quantity,
+  price: {
+    amount: itemPrice, // ✅ per unit price
+    currency: product.price.currency,
+  },
         costPrice: {
-          amount:
-            Number(product.costPrice?.amount || 0) * Number(item.quantity),
+          amount: Number(product.costPrice?.amount || 0), // ✅ per unit
           currency: product.costPrice?.currency || product.price.currency,
         },
       };
@@ -661,7 +662,12 @@ const ownerUpdateOrderStatus = async (req, res) => {
     }
 
     order.status = targetStatus;
-    await order.save();
+
+if (targetStatus === "COMPLETED") {
+  order.completedAt = new Date(); // ✅ VERY IMPORTANT FIX
+}
+
+await order.save();
     await publishOrderUpdateForSellerDashboard(order);
 
     if (targetStatus === "READY") {

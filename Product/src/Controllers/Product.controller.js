@@ -401,7 +401,7 @@ const getProductsByOwner = async (req, res) => {
     const products = await productModel
       .find({ owner: req.user.id })
       .skip(Number(skip))
-      .limit(Math.min(Number(limit), 20));
+      .limit(Math.min(Number(limit), 73));
 
     return res.status(200).json({ data: products });
   } catch (error) {

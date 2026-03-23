@@ -4,8 +4,16 @@ const orderModel = require("../models/order.model");
 const paymentModel = require("../models/payment.model");
 const axios = require("axios");
 
-const VALID_SALES_STATUSES = ["COMPLETED"];
+const VALID_SALES_STATUSES = [
+
+  "COMPLETED",
+];
 const LOW_STOCK_THRESHOLD = Number(process.env.LOW_STOCK_THRESHOLD || 5);
+const REPORT_TZ_OFFSET_MINUTES = Number.isFinite(
+  Number(process.env.REPORT_TZ_OFFSET_MINUTES),
+)
+  ? Number(process.env.REPORT_TZ_OFFSET_MINUTES)
+  : 330;
 const PRODUCT_SERVICE_URL =
   process.env.PRODUCT_SERVICE_URL || "http://localhost:3001/api/products";
 const AUTH_SERVICE_URL =
@@ -62,11 +70,14 @@ const getSellerProducts = async (req, sellerId) => {
 
     await Promise.all(
       sourceProducts.map((product) => {
-        const { _id, ...productData } = product;
+        const productData = { ...product };
+
+        delete productData._id; // 🚨 VERY IMPORTANT FIX
+
         return productModel.findByIdAndUpdate(
-          _id,
+          product._id,
           { $set: productData },
-          { new: true, upsert: true },
+          { upsert: true, returnDocument: "after" }, // ✅ updated option
         );
       }),
     );
@@ -144,15 +155,78 @@ const isBetweenDates = (dateValue, startDate, endDate) => {
   return date >= startDate && date <= endDate;
 };
 
-const getLastSevenDaysRange = (dateValue) => {
-  const endOfRange = new Date(dateValue);
-  endOfRange.setHours(23, 59, 59, 999);
+const shiftByOffsetMinutes = (dateValue, offsetMinutes) =>
+  new Date(new Date(dateValue).getTime() + offsetMinutes * 60 * 1000);
 
-  const startOfRange = new Date(dateValue);
-  startOfRange.setDate(startOfRange.getDate() - 6);
-  startOfRange.setHours(0, 0, 0, 0);
+const unshiftByOffsetMinutes = (dateValue, offsetMinutes) =>
+  new Date(new Date(dateValue).getTime() - offsetMinutes * 60 * 1000);
 
-  return { startOfRange, endOfRange };
+const getBusinessDayRange = (dateValue, offsetMinutes) => {
+  const shiftedDate = shiftByOffsetMinutes(dateValue, offsetMinutes);
+
+  const shiftedStart = new Date(shiftedDate);
+  shiftedStart.setUTCHours(0, 0, 0, 0);
+
+  const shiftedEnd = new Date(shiftedDate);
+  shiftedEnd.setUTCHours(23, 59, 59, 999);
+
+  return {
+    start: unshiftByOffsetMinutes(shiftedStart, offsetMinutes),
+    end: unshiftByOffsetMinutes(shiftedEnd, offsetMinutes),
+  };
+};
+
+const getCompletedOrderDate = (order) => order.createdAt;
+
+const getBusinessMonthRange = (dateValue, offsetMinutes) => {
+  const shiftedDate = shiftByOffsetMinutes(dateValue, offsetMinutes);
+
+  const shiftedStart = new Date(
+    Date.UTC(
+      shiftedDate.getUTCFullYear(),
+      shiftedDate.getUTCMonth(),
+      1,
+      0,
+      0,
+      0,
+    ),
+  );
+  const shiftedEnd = new Date(
+    Date.UTC(
+      shiftedDate.getUTCFullYear(),
+      shiftedDate.getUTCMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999,
+    ),
+  );
+
+  return {
+    start: unshiftByOffsetMinutes(shiftedStart, offsetMinutes),
+    end: unshiftByOffsetMinutes(shiftedEnd, offsetMinutes),
+  };
+};
+
+const getLastSevenDaysRange = (dateValue, offsetMinutes) => {
+  const shiftedDate = shiftByOffsetMinutes(dateValue, offsetMinutes);
+
+  const day = shiftedDate.getUTCDay(); // 0 = Sunday
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+
+  const start = new Date(shiftedDate);
+  start.setUTCDate(shiftedDate.getUTCDate() + diffToMonday);
+  start.setUTCHours(0, 0, 0, 0);
+
+  const end = new Date(start);
+  end.setUTCDate(start.getUTCDate() + 6);
+  end.setUTCHours(23, 59, 59, 999);
+
+  return {
+    startOfRange: unshiftByOffsetMinutes(start, offsetMinutes),
+    endOfRange: unshiftByOffsetMinutes(end, offsetMinutes),
+  };
 };
 
 const getMetrics = async (req, res) => {
@@ -167,15 +241,20 @@ const getMetrics = async (req, res) => {
       role: "user",
     });
     const now = new Date();
-    const startOfToday = new Date(now);
-    startOfToday.setHours(0, 0, 0, 0);
-    const endOfToday = new Date(now);
-    endOfToday.setHours(23, 59, 59, 999);
+    const { start: startOfToday, end: endOfToday } = getBusinessDayRange(
+      now,
+      REPORT_TZ_OFFSET_MINUTES,
+    );
 
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    endOfMonth.setHours(23, 59, 59, 999);
-    const { startOfRange, endOfRange } = getLastSevenDaysRange(now);
+    const { start: startOfMonth, end: endOfMonth } = getBusinessMonthRange(
+      now,
+      REPORT_TZ_OFFSET_MINUTES,
+    );
+
+    const { startOfRange, endOfRange } = getLastSevenDaysRange(
+      now,
+      REPORT_TZ_OFFSET_MINUTES,
+    );
 
     // Get all products owned by this seller
     const sellerProducts = await getSellerProducts(req, sellerId);
@@ -249,9 +328,10 @@ const getMetrics = async (req, res) => {
     let sellerOrderCount = 0;
     const customerIds = new Set();
     const productSalesMap = new Map();
+    const todaysOrderIds = [];
 
     orders.forEach((order) => {
-      const orderDate = order.createdAt || order.updatedAt;
+      const orderDate = getCompletedOrderDate(order);
       const isTodayOrder = isBetweenDates(orderDate, startOfToday, endOfToday);
       const isMonthlyOrder = isBetweenDates(
         orderDate,
@@ -260,6 +340,9 @@ const getMetrics = async (req, res) => {
       );
       const isWeeklyOrder = isBetweenDates(orderDate, startOfRange, endOfRange);
       let hasSellerItems = false;
+      let orderTodaySalesQuantity = 0;
+      let orderWeeklySalesQuantity = 0;
+      let orderMonthlySalesQuantity = 0;
       let orderWeeklyCost = 0;
       let orderTodayCost = 0;
       let hasOrderWeeklyCostData = true;
@@ -274,32 +357,37 @@ const getMetrics = async (req, res) => {
           const itemQuantity = Number(item.quantity || 0);
           const lineRevenue = Number(item.price?.amount || 0) * itemQuantity;
 
-          totalSales += item.quantity;
+          totalSales += itemQuantity;
           totalRevenue += lineRevenue;
-
           if (isTodayOrder) {
+            orderTodaySalesQuantity += itemQuantity;
             todaysRevenue += lineRevenue;
 
-            const lineCost = Number(item.costPrice?.amount);
-            if (Number.isFinite(lineCost) && lineCost >= 0) {
-              orderTodayCost += lineCost;
+            const lineCostPerUnit = Number(item.costPrice?.amount);
+            if (Number.isFinite(lineCostPerUnit) && lineCostPerUnit >= 0) {
+              orderTodayCost += lineCostPerUnit * itemQuantity;
             } else {
               hasOrderTodayCostData = false;
             }
           }
 
           if (isWeeklyOrder) {
+            orderWeeklySalesQuantity += itemQuantity;
             weeklyRevenue += lineRevenue;
 
-            const weeklyLineCost = Number(item.costPrice?.amount);
-            if (Number.isFinite(weeklyLineCost) && weeklyLineCost >= 0) {
-              orderWeeklyCost += weeklyLineCost;
+            const weeklyLineCostPerUnit = Number(item.costPrice?.amount);
+            if (
+              Number.isFinite(weeklyLineCostPerUnit) &&
+              weeklyLineCostPerUnit >= 0
+            ) {
+              orderWeeklyCost += weeklyLineCostPerUnit * itemQuantity;
             } else {
               hasOrderWeeklyCostData = false;
             }
           }
 
           if (isMonthlyOrder) {
+            orderMonthlySalesQuantity += itemQuantity;
             monthlyRevenue += lineRevenue;
           }
 

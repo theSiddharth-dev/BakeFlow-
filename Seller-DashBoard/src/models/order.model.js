@@ -1,26 +1,23 @@
 const mongoose = require("mongoose");
 
 const addressSchema = new mongoose.Schema({
-  // Define schema for address subdocument
-  street: String, // Street field as string
-  city: String, // City field as string
-  state: String, // State field as string
-  pincode: String, // pincode field as string (note: in code it's pincode, but validation uses pincode)
-  country: String, // Country field as string
+  street: String,
+  city: String,
+  state: String,
+  pincode: String,
+  country: String,
 });
 
 const OrderSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "user",
       required: true,
     },
     items: [
       {
         product: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "product",
           required: true,
         },
         quantity: {
@@ -98,7 +95,6 @@ const OrderSchema = new mongoose.Schema(
       },
       paymentStatus: {
         type: String,
-        default: "PAID",
       },
       paymentId: {
         type: String,
@@ -106,13 +102,16 @@ const OrderSchema = new mongoose.Schema(
       customerName: {
         type: String,
       },
+      imageKitUrl: {
+        type: String,
+      },
+      imageKitFileId: {
+        type: String,
+      },
     },
-    customerName: {
-      type: String,
-    },
-    customerEmail: {
-      type: String,
-    },
+     completedAt: {
+        type: Date,
+  },
   },
   { timestamps: true },
 );

@@ -109,6 +109,9 @@ const OrderSchema = new mongoose.Schema(
         type: String,
       },
     },
+    completedAt: {
+        type: Date,
+  },
   },
   { timestamps: true },
 );

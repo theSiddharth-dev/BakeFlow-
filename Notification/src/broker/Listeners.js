@@ -2,6 +2,13 @@ const { subscribeToQueue } = require("./broker");
 const { sendEmail } = require("../email");
 const axios = require("axios");
 
+const PRODUCT_NOTIFICATION_CONSUMERS = Number(
+  process.env.PRODUCT_NOTIFICATION_CONSUMERS || 5,
+);
+const RECEIPT_FETCH_TIMEOUT_MS = Number(
+  process.env.RECEIPT_FETCH_TIMEOUT_MS || 4000,
+);
+
 module.exports = function () {
   subscribeToQueue("AUTH_NOTIFICATION.USER_CREATED", async (data) => {
     const emailHtmlTemplate = `<!DOCTYPE html>
@@ -290,14 +297,11 @@ module.exports = function () {
 
       <div class="info-box">
         <strong>Order ID:</strong> ${data.orderId} <br/>
-        <strong>Payment Method:</strong> ${data.paymentMethod}
+        <strong>Payment Method:</strong> ${data.paymentMethod ||"Razorpay"}
       </div>
 
       <p>Your delicious treats are now being prepared! 🍰</p>
 
-      <a href="${data.orderTrackingUrl || "#"}" class="button">
-        Track Your Order
-      </a>
 
       <p>If you have any questions, feel free to contact our support team.</p>
 
@@ -332,6 +336,7 @@ module.exports = function () {
               Authorization: `Bearer ${data.receiptAuthToken}`,
             },
             responseType: "arraybuffer",
+            timeout: RECEIPT_FETCH_TIMEOUT_MS,
           },
         );
 
@@ -374,8 +379,10 @@ module.exports = function () {
     );
   });
 
-  subscribeToQueue("PRODUCT_NOTIFICATION.PRODUCT_CREATED", async (data) => {
-    const emailHtmlTemplate = `
+  subscribeToQueue(
+    "PRODUCT_NOTIFICATION.PRODUCT_CREATED",
+    async (data) => {
+      const emailHtmlTemplate = `
     <!DOCTYPE html>
 <html>
 <head>
@@ -479,13 +486,19 @@ module.exports = function () {
 </body>
 </html>
     `;
-    await sendEmail(
-      data.email,
-      "New Product Launched",
-      "Check out our latest product",
-      emailHtmlTemplate,
-    );
-  });
+      await sendEmail(
+        data.email,
+        "New Product Launched",
+        "Check out our latest product",
+        emailHtmlTemplate,
+      );
+    },
+    {
+      concurrency: Number.isInteger(PRODUCT_NOTIFICATION_CONSUMERS)
+        ? PRODUCT_NOTIFICATION_CONSUMERS
+        : 5,
+    },
+  );
 
   subscribeToQueue("ORDER_NOTIFICATION.ORDER_READY", async (data) => {
     const readyTemplate = `
@@ -506,7 +519,7 @@ module.exports = function () {
       <td style="padding:24px;color:#333333;">
         <h2 style="margin-top:0;">Hi ${data.username || "Customer"}, your order is ready</h2>
         <p style="line-height:1.6;color:#555555;">
-          Great news. Your order <strong>${data.orderId}</strong> is now <strong>READY</strong>.
+          Great news. Your order <strong>${data.title}</strong> is now <strong>READY</strong>.
         </p>
         <p style="line-height:1.6;color:#555555;">
           Please check your orders page for the latest status and next updates.

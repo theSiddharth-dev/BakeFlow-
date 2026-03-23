@@ -1,9 +1,23 @@
 require("dotenv").config();
 const nodemailer = require("nodemailer");
 
+const toPositiveInt = (value, fallback) => {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+};
+
 // Configure the email transporter using OAuth2
 const transporter = nodemailer.createTransport({
   service: "gmail",
+  pool: true,
+  maxConnections: toPositiveInt(process.env.EMAIL_POOL_MAX_CONNECTIONS, 5),
+  maxMessages: toPositiveInt(process.env.EMAIL_POOL_MAX_MESSAGES, 100),
+  connectionTimeout: toPositiveInt(
+    process.env.EMAIL_CONNECTION_TIMEOUT_MS,
+    10000,
+  ),
+  greetingTimeout: toPositiveInt(process.env.EMAIL_GREETING_TIMEOUT_MS, 5000),
+  socketTimeout: toPositiveInt(process.env.EMAIL_SOCKET_TIMEOUT_MS, 15000),
   auth: {
     type: "OAuth2",
     user: process.env.EMAIL_USER,
@@ -35,9 +49,9 @@ const sendEmail = async (to, subject, text, html, attachments = []) => {
     });
 
     console.log("Message sent: %s", info.messageId);
-    console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
   } catch (error) {
     console.error("Error sending email:", error);
+    throw error;
   }
 };
 

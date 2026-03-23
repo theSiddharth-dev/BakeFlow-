@@ -24,15 +24,72 @@ module.exports = async function () {
   );
 
   subscribeToQueue("ORDER_SELLER_DASHBOARD.ORDER_CREATED", async (order) => {
-    await orderModel.create(order);
+    const completedAt =
+      order?.status === "COMPLETED"
+        ? order?.completedAt ||
+          order?.createdAt ||
+          order?.updatedAt ||
+          new Date()
+        : undefined;
+
+    await orderModel.create({
+      ...order,
+      ...(completedAt ? { completedAt } : {}),
+    });
   });
 
   subscribeToQueue("ORDER_SELLER_DASHBOARD.ORDER_UPDATED", async (order) => {
     const { _id, ...orderData } = order;
+
+    const existingOrder = await orderModel
+      .findById(_id)
+      .select("status completedAt createdAt");
+
+    let completedAt = existingOrder?.completedAt;
+
+    const becameCompleted =
+      existingOrder &&
+      existingOrder.status !== "COMPLETED" &&
+      orderData?.status === "COMPLETED";
+
+    const isCompletedWithoutTimestamp =
+      existingOrder &&
+      existingOrder.status === "COMPLETED" &&
+      orderData?.status === "COMPLETED" &&
+      !existingOrder?.completedAt;
+
+    if (!completedAt && becameCompleted) {
+      completedAt =
+        orderData?.completedAt || orderData?.updatedAt || new Date();
+    } else if (!completedAt && isCompletedWithoutTimestamp) {
+      completedAt = existingOrder.createdAt;
+    } else if (
+      !completedAt &&
+      !existingOrder &&
+      orderData?.status === "COMPLETED"
+    ) {
+      completedAt =
+        orderData?.completedAt ||
+        orderData?.createdAt ||
+        orderData?.updatedAt ||
+        new Date();
+    }
+
+    const safeOrderData = { ...orderData };
+    delete safeOrderData._id; // 🚨 CRITICAL FIX
+
     await orderModel.findByIdAndUpdate(
       _id,
-      { $set: orderData },
-      { new: true, upsert: true },
+      {
+        $set: {
+          ...safeOrderData,
+          ...(completedAt ? { completedAt } : {}),
+        },
+      },
+      {
+        upsert: true,
+        returnDocument: "after", // ✅ fix warning also
+      },
     );
   });
 
@@ -46,10 +103,13 @@ module.exports = async function () {
   subscribeToQueue(
     "PAYMENT_SELLER_DASHBOARD.PAYMENT_UPDATE",
     async (payment) => {
+      const paymentData = { ...payment };
+      delete paymentData._id; // 🚨 IMPORTANT
+
       await paymentModel.findOneAndUpdate(
         { order: payment.order },
-        { ...payment },
-        { new: true },
+        { $set: paymentData },
+        { returnDocument: "after" },
       );
     },
   );
