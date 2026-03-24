@@ -15,16 +15,21 @@ const PRODUCT_BASE_URL = (process.env.PRODUCT_SERVICE_URL || "").replace(
 const PRODUCT_API_URL = PRODUCT_BASE_URL.endsWith("/api/products")
   ? PRODUCT_BASE_URL
   : `${PRODUCT_BASE_URL}/api/products`;
+  
 const CART_BASE_URL = (process.env.CART_SERVICE_URL || "").replace(/\/+$/, "");
+
 const CART_API_URL = CART_BASE_URL.endsWith("/api/cart")
   ? CART_BASE_URL
   : `${CART_BASE_URL}/api/cart`;
+
 const AUTH_BASE_URL = (
   process.env.AUTH_SERVICE_URL || "http://localhost:3000"
 ).replace(/\/+$/, "");
+
 const AUTH_API_URL = AUTH_BASE_URL.endsWith("/api/auth")
   ? AUTH_BASE_URL
   : `${AUTH_BASE_URL}/api/auth`;
+
 const OWNER_VISIBLE_STATUSES = [
   "CONFIRMED",
   "PROCESSING",
@@ -708,7 +713,7 @@ const getOrderById = async (req, res) => {
 
     // Check if user is authorized to view this order
     // Admin can view any order, user can only view their own
-    if (user.role !== "admin" && order.user.toString() !== user.id) {
+    if (user.role !== "owner" && order.user.toString() !== user.id) {
       return res.status(403).json({
         message: "Forbidden - You don't have access to this order",
       });

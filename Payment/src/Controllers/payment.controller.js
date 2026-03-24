@@ -13,6 +13,8 @@ const razorpay = new Razorpay({
 const CART_SERVICE_URL =
   process.env.CART_SERVICE_URL || "http://localhost:3002/api/cart";
 
+const ORDER_SERVICE_URL = process.env.ORDER_SERVICE_URL || "http://localhost:3003";
+
 const createPayment = async (req, res) => {
   const token = req.cookies?.token || req.headers?.authorization?.split(" ")[1];
 
@@ -20,7 +22,7 @@ const createPayment = async (req, res) => {
   try {
     const orderId = req.params.orderId;
     const orderResponse = await axios.get(
-      `${process.env.ORDER_SERVICE_URL}/api/orders/${orderId}`,
+      `${ORDER_SERVICE_URL}/api/orders/${orderId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
