@@ -1,0 +1,132 @@
+.create-order-page {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f4f7ff 0%, #eef3ff 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+.create-order-card {
+  width: 100%;
+  max-width: 720px;
+  background: #ffffff;
+  border: 1px solid #e7ecf6;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+}
+
+.create-order-card h1 {
+  margin: 0;
+  color: #1f2937;
+  font-size: clamp(1.6rem, 3vw, 2rem);
+}
+
+.create-order-note {
+  margin: 12px 0 18px;
+  color: #4b5563;
+  line-height: 1.5;
+  font-size: 1rem;
+}
+
+.create-order-summary {
+  border: 1px solid #e8ecf3;
+  border-radius: 12px;
+  background: #f8faff;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.create-order-summary > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.create-order-summary span {
+  color: #6b7280;
+}
+
+.create-order-summary strong {
+  color: #111827;
+  text-align: right;
+}
+
+.create-order-actions {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.create-order-btn {
+  height: 46px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.create-order-btn--confirm {
+  color: #fff;
+  background: linear-gradient(90deg, #e87c2a 0%, #f9c451 100%);
+}
+
+.create-order-btn--cancel {
+  color: #1f2937;
+  border: 1px solid #d8dfeb;
+  background: #ffffff;
+}
+
+.create-order-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.create-order-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.45);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 999;
+}
+
+.create-order-modal {
+  width: 100%;
+  max-width: 520px;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e5eaf3;
+  padding: 22px;
+  text-align: center;
+}
+
+.create-order-modal h2 {
+  margin: 0 0 8px;
+  color: #14532d;
+}
+
+.create-order-modal p {
+  margin: 0 0 14px;
+  color: #4b5563;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .create-order-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .create-order-actions {
+    grid-template-columns: 1fr;
+  }
+}

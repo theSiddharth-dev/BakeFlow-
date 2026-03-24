@@ -1,0 +1,121 @@
+.user-orders-list {
+  display: grid;
+  gap: 12px;
+}
+
+.user-orders-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.user-orders-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.user-orders-table th,
+.user-orders-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+.user-orders-table th {
+  background: #f9fafb;
+  color: #111827;
+  font-weight: 700;
+}
+
+.user-order-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px;
+  background: #fff;
+}
+
+.user-order-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.user-orders-receipt-btn {
+  border: 1px solid #0f766e;
+  color: #0f766e;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.user-orders-receipt-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.user-orders-receipt-btn--secondary {
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.user-orders-receipt-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.6);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 1200;
+}
+
+.user-orders-receipt-modal {
+  width: min(960px, 100%);
+  max-height: 90vh;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.user-orders-receipt-modal h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 18px;
+}
+
+.user-orders-receipt-preview-wrap {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f9fafb;
+}
+
+.user-orders-receipt-preview {
+  width: 100%;
+  height: 70vh;
+  border: 0;
+  display: block;
+}
+
+.user-orders-receipt-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 1100px) {
+  .user-orders-receipt-preview {
+    height: 62vh;
+  }
+}

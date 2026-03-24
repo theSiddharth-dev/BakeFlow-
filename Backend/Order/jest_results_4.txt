@@ -1,0 +1,50 @@
+  console.warn
+    Starting the MongoMemoryServer Instance failed, enable debug log for more information. Error:
+     GenericMMSError: Instance failed to start within 10000ms
+        at Timeout.<anonymous> (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Order\node_modules\mongodb-memory-server-core\src\util\MongoInstance.ts:383:21)
+        at listOnTimeout (node:internal/timers:588:17)
+        at processTimers (node:internal/timers:523:7)
+
+      13 |
+      14 | beforeAll(async () => {
+    > 15 |   mongoServer = await MongoMemoryServer.create({
+         |                 ^
+      16 |     binary: {
+      17 |       version: "7.0.0", // Set a fixed version to avoid download checks if possible
+      18 |       skipMD5: true,
+
+      at node_modules/mongodb-memory-server-core/src/MongoMemoryServer.ts:359:17
+      at MongoMemoryServer.start (node_modules/mongodb-memory-server-core/src/MongoMemoryServer.ts:350:5)
+      at Function.create (node_modules/mongodb-memory-server-core/src/MongoMemoryServer.ts:317:5)
+      at Object.<anonymous> (tests/order.test.js:15:17)
+
+FAIL tests/order.test.js (20.771 s)
+  POST /api/orders
+    × should create an order successfully (4 ms)
+    × should return 400 if cart is empty (1 ms)
+    × should fail if inventory is insufficient (1 ms)
+
+  ● POST /api/orders › should create an order successfully
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● POST /api/orders › should return 400 if cart is empty
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● POST /api/orders › should fail if inventory is insufficient
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+Test Suites: 1 failed, 1 total
+Tests:       3 failed, 3 total
+Snapshots:   0 total
+Time:        21.222 s, estimated 27 s
+Ran all test suites matching tests/order.test.js.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect async operations that kept running after all tests finished?

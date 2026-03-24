@@ -1,0 +1,243 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(circle at top, rgba(255, 196, 124, 0.18), transparent 32%),
+    rgba(10, 16, 28, 0.58);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  backdrop-filter: blur(6px);
+  z-index: 999;
+}
+
+.modal {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 248, 241, 0.96),
+    rgba(255, 255, 255, 0.98)
+  );
+  width: min(680px, 100%);
+  max-width: 100%;
+  border-radius: 24px;
+  padding: 28px;
+  border: 1px solid rgba(255, 176, 90, 0.28);
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.24);
+  animation: pop 0.24s ease-out;
+}
+
+.create-modal h1 {
+  margin-top: 0;
+}
+
+.create-modal {
+  display: flex;
+  justify-content: space-between;
+}
+
+.create-modal p {
+  cursor: pointer;
+  font-size: 20px;
+  margin: 0;
+}
+
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.create-form h2 {
+  margin: 0 0 4px;
+  font-size: 1.85rem;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: #1f2937;
+}
+
+.create-form::before {
+  content: "Add a fresh bakery item to your catalog";
+  color: #6b7280;
+  font-size: 0.96rem;
+  margin-top: -2px;
+}
+
+.create-form input,
+.create-form textarea,
+.create-form select {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid #e5d7c9;
+  background: rgba(255, 255, 255, 0.96);
+  color: #1f2937;
+  font-size: 0.98rem;
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.create-form input::placeholder,
+.create-form textarea::placeholder {
+  color: #9aa3b2;
+}
+
+.create-form input:focus,
+.create-form textarea:focus,
+.create-form select:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.14);
+  background: #ffffff;
+}
+
+.create-form textarea {
+  min-height: 132px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.create-form select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #b45309 50%),
+    linear-gradient(135deg, #b45309 50%, transparent 50%);
+  background-position:
+    calc(100% - 22px) calc(50% - 2px),
+    calc(100% - 16px) calc(50% - 2px);
+  background-size:
+    6px 6px,
+    6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 44px;
+}
+
+.create-form input[type="file"] {
+  padding: 10px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 250, 245, 0.96),
+    rgba(255, 244, 232, 0.92)
+  );
+  border-style: dashed;
+  cursor: pointer;
+}
+
+.create-form input[type="file"]::file-selector-button {
+  margin-right: 12px;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  background: #1f2937;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.create-form input[type="number"]::-webkit-outer-spin-button,
+.create-form input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.create-form input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.create-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.create-actions button {
+  min-width: 128px;
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  padding: 0 18px;
+  font-size: 0.96rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    opacity 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.create-actions button:first-child {
+  background: #f8fafc;
+  color: #374151;
+  border-color: #d7deea;
+}
+
+.create-actions button:last-child {
+  background: linear-gradient(135deg, #f97316, #f59e0b);
+  color: #ffffff;
+  box-shadow: 0 14px 30px rgba(249, 115, 22, 0.28);
+}
+
+.create-actions button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.create-actions button:last-child:hover:not(:disabled) {
+  box-shadow: 0 18px 34px rgba(249, 115, 22, 0.34);
+}
+
+.create-actions button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@keyframes pop {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .modal-backdrop {
+    padding: 14px;
+    align-items: flex-end;
+  }
+
+  .modal {
+    border-radius: 22px 22px 18px 18px;
+    padding: 20px;
+  }
+
+  .create-form h2 {
+    font-size: 1.45rem;
+  }
+
+  .create-form::before {
+    font-size: 0.9rem;
+  }
+
+  .create-form input,
+  .create-form textarea,
+  .create-form select {
+    padding: 13px 14px;
+    font-size: 0.95rem;
+  }
+
+  .create-actions {
+    flex-direction: column-reverse;
+  }
+
+  .create-actions button {
+    width: 100%;
+  }
+}
