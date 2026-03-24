@@ -6,13 +6,6 @@ const sellerRoutes = require("./routes/seller.routes");
 
 const app = express();
 
-app.use(express.json());
-app.use(cookieParser());
-
-app.get("/", (req, res) => {
-  res.status(200).json({ message: "Seller Dashboard service is running" });
-});
-
 app.use(
   cors({
     origin: [
@@ -24,11 +17,26 @@ app.use(
       "http://localhost:3004",
       "http://localhost:3006",
       "http://localhost:3007",
+      "https://auth-service-j068.onrender.com",
+        "https://product-service-58x4.onrender.com/",
+        "https://cart-service-qxtm.onrender.com",
+        "https://order-service-2ggi.onrender.com",
+        "https://payment-service-q53e.onrender.com",
+        "https://notification-service-oghw.onrender.com",
+        "https://seller-dashboard-service.onrender.com"
     ],
     accessControlAllowCredentials: true,
     credentials: true,
   }),
 );
+
+app.use(express.json());
+app.use(cookieParser());
+
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Seller Dashboard service is running" });
+});
+
 
 app.use("/api/seller/dashboard", sellerRoutes);
 

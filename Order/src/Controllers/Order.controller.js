@@ -293,7 +293,7 @@ const createOrder = async (req, res) => {
 
     // 2️⃣ Fetch all product details
     const productRequests = cartItems.map((item) =>
-      axios.get(`${PRODUCT_API_URL}/${item.productId}`, {
+      axios.get(`${PRODUCT_API_URL}/api/products/${item.productId}`, {
         headers: { Authorization: `Bearer ${token}` },
       }),
     );
@@ -399,7 +399,6 @@ priceAmount += itemTotal;
       order,
     });
   } catch (err) {
-    console.log(err);
 
     if (err.response?.status) {
       return res.status(err.response.status).json({
