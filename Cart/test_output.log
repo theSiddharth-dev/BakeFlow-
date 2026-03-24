@@ -1,0 +1,1593 @@
+
+> cart@1.0.0 test
+> jest
+
+FAIL __tests__/cart.updateItem.test.js (25.741 s)
+  ● Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (5) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+  ● PATCH /api/cart/items/:productId - Update item quantity › Cart update behaviour › updates quantity when item exists
+
+    expected 200 "OK", got 404 "Not Found"
+
+    [0m [90m 152 |[39m         [33m.[39m[36mset[39m(authHeader())
+     [90m 153 |[39m         [33m.[39msend({ qty[33m:[39m [35m3[39m })
+    [31m[1m>[22m[39m[90m 154 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 155 |[39m
+     [90m 156 |[39m       [36mconst[39m updatedCart [33m=[39m [36mawait[39m cartModel[33m.[39mfindOne({ userId })[33m;[39m
+     [90m 157 |[39m       expect(updatedCart[33m.[39mitems[[35m0[39m][33m.[39mquantity)[33m.[39mtoBe([35m3[39m)[33m;[39m[0m
+
+      at Object.expect (__tests__/cart.updateItem.test.js:154:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+FAIL __tests__/cart.getItems.test.js (27.87 s)
+  ● Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (5) from .env -- tip: 📡 add observability to secrets: https://dotenvx.com/ops
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.error
+      Error fetching cart items: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 156 |[39m     })[33m;[39m
+     [90m 157 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 158 |[39m     console[33m.[39merror([32m"Error fetching cart items:"[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 159 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 160 |[39m       error[33m:[39m [32m"Failed to fetch cart items"[39m[33m,[39m
+     [90m 161 |[39m       message[33m:[39m error[33m.[39mmessage[33m,[39m[0m
+
+      at error (src/controllers/cart.controller.js:158:13)
+
+    console.error
+      Error fetching cart items: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 156 |[39m     })[33m;[39m
+     [90m 157 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 158 |[39m     console[33m.[39merror([32m"Error fetching cart items:"[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 159 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 160 |[39m       error[33m:[39m [32m"Failed to fetch cart items"[39m[33m,[39m
+     [90m 161 |[39m       message[33m:[39m error[33m.[39mmessage[33m,[39m[0m
+
+      at error (src/controllers/cart.controller.js:158:13)
+
+    console.error
+      Error fetching cart items: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 156 |[39m     })[33m;[39m
+     [90m 157 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 158 |[39m     console[33m.[39merror([32m"Error fetching cart items:"[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 159 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 160 |[39m       error[33m:[39m [32m"Failed to fetch cart items"[39m[33m,[39m
+     [90m 161 |[39m       message[33m:[39m error[33m.[39mmessage[33m,[39m[0m
+
+      at error (src/controllers/cart.controller.js:158:13)
+
+    console.error
+      Error fetching cart items: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 156 |[39m     })[33m;[39m
+     [90m 157 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 158 |[39m     console[33m.[39merror([32m"Error fetching cart items:"[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 159 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 160 |[39m       error[33m:[39m [32m"Failed to fetch cart items"[39m[33m,[39m
+     [90m 161 |[39m       message[33m:[39m error[33m.[39mmessage[33m,[39m[0m
+
+      at error (src/controllers/cart.controller.js:158:13)
+
+    console.error
+      Error fetching cart items: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 156 |[39m     })[33m;[39m
+     [90m 157 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 158 |[39m     console[33m.[39merror([32m"Error fetching cart items:"[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 159 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 160 |[39m       error[33m:[39m [32m"Failed to fetch cart items"[39m[33m,[39m
+     [90m 161 |[39m       message[33m:[39m error[33m.[39mmessage[33m,[39m[0m
+
+      at error (src/controllers/cart.controller.js:158:13)
+
+    console.error
+      Error fetching cart items: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 156 |[39m     })[33m;[39m
+     [90m 157 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 158 |[39m     console[33m.[39merror([32m"Error fetching cart items:"[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 159 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 160 |[39m       error[33m:[39m [32m"Failed to fetch cart items"[39m[33m,[39m
+     [90m 161 |[39m       message[33m:[39m error[33m.[39mmessage[33m,[39m[0m
+
+      at error (src/controllers/cart.controller.js:158:13)
+
+    console.error
+      Error fetching cart items: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 156 |[39m     })[33m;[39m
+     [90m 157 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 158 |[39m     console[33m.[39merror([32m"Error fetching cart items:"[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 159 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 160 |[39m       error[33m:[39m [32m"Failed to fetch cart items"[39m[33m,[39m
+     [90m 161 |[39m       message[33m:[39m error[33m.[39mmessage[33m,[39m[0m
+
+      at error (src/controllers/cart.controller.js:158:13)
+
+    console.error
+      Error fetching cart items: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 156 |[39m     })[33m;[39m
+     [90m 157 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 158 |[39m     console[33m.[39merror([32m"Error fetching cart items:"[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 159 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 160 |[39m       error[33m:[39m [32m"Failed to fetch cart items"[39m[33m,[39m
+     [90m 161 |[39m       message[33m:[39m error[33m.[39mmessage[33m,[39m[0m
+
+      at error (src/controllers/cart.controller.js:158:13)
+
+    console.error
+      Error fetching cart items: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 156 |[39m     })[33m;[39m
+     [90m 157 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 158 |[39m     console[33m.[39merror([32m"Error fetching cart items:"[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 159 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 160 |[39m       error[33m:[39m [32m"Failed to fetch cart items"[39m[33m,[39m
+     [90m 161 |[39m       message[33m:[39m error[33m.[39mmessage[33m,[39m[0m
+
+      at error (src/controllers/cart.controller.js:158:13)
+
+    console.error
+      Error fetching cart items: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 156 |[39m     })[33m;[39m
+     [90m 157 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 158 |[39m     console[33m.[39merror([32m"Error fetching cart items:"[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 159 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 160 |[39m       error[33m:[39m [32m"Failed to fetch cart items"[39m[33m,[39m
+     [90m 161 |[39m       message[33m:[39m error[33m.[39mmessage[33m,[39m[0m
+
+      at error (src/controllers/cart.controller.js:158:13)
+
+    console.error
+      Error fetching cart items: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 156 |[39m     })[33m;[39m
+     [90m 157 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 158 |[39m     console[33m.[39merror([32m"Error fetching cart items:"[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 159 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 160 |[39m       error[33m:[39m [32m"Failed to fetch cart items"[39m[33m,[39m
+     [90m 161 |[39m       message[33m:[39m error[33m.[39mmessage[33m,[39m[0m
+
+      at error (src/controllers/cart.controller.js:158:13)
+
+    console.error
+      Error fetching cart items: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 156 |[39m     })[33m;[39m
+     [90m 157 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 158 |[39m     console[33m.[39merror([32m"Error fetching cart items:"[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 159 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 160 |[39m       error[33m:[39m [32m"Failed to fetch cart items"[39m[33m,[39m
+     [90m 161 |[39m       message[33m:[39m error[33m.[39mmessage[33m,[39m[0m
+
+      at error (src/controllers/cart.controller.js:158:13)
+
+    console.error
+      Error fetching cart items: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 156 |[39m     })[33m;[39m
+     [90m 157 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 158 |[39m     console[33m.[39merror([32m"Error fetching cart items:"[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 159 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 160 |[39m       error[33m:[39m [32m"Failed to fetch cart items"[39m[33m,[39m
+     [90m 161 |[39m       message[33m:[39m error[33m.[39mmessage[33m,[39m[0m
+
+      at error (src/controllers/cart.controller.js:158:13)
+
+    console.error
+      Error fetching cart items: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 156 |[39m     })[33m;[39m
+     [90m 157 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 158 |[39m     console[33m.[39merror([32m"Error fetching cart items:"[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 159 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 160 |[39m       error[33m:[39m [32m"Failed to fetch cart items"[39m[33m,[39m
+     [90m 161 |[39m       message[33m:[39m error[33m.[39mmessage[33m,[39m[0m
+
+      at error (src/controllers/cart.controller.js:158:13)
+
+    console.error
+      Error fetching cart items: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 156 |[39m     })[33m;[39m
+     [90m 157 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 158 |[39m     console[33m.[39merror([32m"Error fetching cart items:"[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 159 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 160 |[39m       error[33m:[39m [32m"Failed to fetch cart items"[39m[33m,[39m
+     [90m 161 |[39m       message[33m:[39m error[33m.[39mmessage[33m,[39m[0m
+
+      at error (src/controllers/cart.controller.js:158:13)
+
+    console.error
+      Error fetching cart items: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at getCartItems (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:94:7) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 156 |[39m     })[33m;[39m
+     [90m 157 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 158 |[39m     console[33m.[39merror([32m"Error fetching cart items:"[39m[33m,[39m error)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 159 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({
+     [90m 160 |[39m       error[33m:[39m [32m"Failed to fetch cart items"[39m[33m,[39m
+     [90m 161 |[39m       message[33m:[39m error[33m.[39mmessage[33m,[39m[0m
+
+      at error (src/controllers/cart.controller.js:158:13)
+
+  ● GET /api/cart/items - Fetch Cart Items with Totals › Cart Retrieval › should return empty cart if user has no cart
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+    [0m [90m 119 |[39m         [33m.[39m[36mget[39m([32m"/api/cart/items"[39m)
+     [90m 120 |[39m         [33m.[39m[36mset[39m([32m"Authorization"[39m[33m,[39m [32m`Bearer ${authToken}`[39m)
+    [31m[1m>[22m[39m[90m 121 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 122 |[39m
+     [90m 123 |[39m       expect(response[33m.[39mbody)[33m.[39mtoHaveProperty([32m"items"[39m)[33m;[39m
+     [90m 124 |[39m       expect(response[33m.[39mbody)[33m.[39mtoHaveProperty([32m"totals"[39m)[33m;[39m[0m
+
+      at Object.expect (__tests__/cart.getItems.test.js:121:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● GET /api/cart/items - Fetch Cart Items with Totals › Cart Retrieval › should fetch cart items for authenticated user
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+    [0m [90m 163 |[39m         [33m.[39m[36mget[39m([32m"/api/cart/items"[39m)
+     [90m 164 |[39m         [33m.[39m[36mset[39m([32m"Authorization"[39m[33m,[39m [32m`Bearer ${authToken}`[39m)
+    [31m[1m>[22m[39m[90m 165 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 166 |[39m
+     [90m 167 |[39m       expect(response[33m.[39mbody)[33m.[39mtoHaveProperty([32m"items"[39m)[33m;[39m
+     [90m 168 |[39m       expect(response[33m.[39mbody)[33m.[39mtoHaveProperty([32m"totals"[39m)[33m;[39m[0m
+
+      at Object.expect (__tests__/cart.getItems.test.js:165:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● GET /api/cart/items - Fetch Cart Items with Totals › Price Fetching from Product Service (Anti-Tampering) › should fetch prices from product service, not from cart items
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+    [0m [90m 196 |[39m         [33m.[39m[36mget[39m([32m"/api/cart/items"[39m)
+     [90m 197 |[39m         [33m.[39m[36mset[39m([32m"Authorization"[39m[33m,[39m [32m`Bearer ${authToken}`[39m)
+    [31m[1m>[22m[39m[90m 198 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 199 |[39m
+     [90m 200 |[39m       [90m// Verify product service was called[39m
+     [90m 201 |[39m       expect(axios[33m.[39m[36mget[39m)[33m.[39mtoHaveBeenCalled()[33m;[39m[0m
+
+      at Object.expect (__tests__/cart.getItems.test.js:198:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● GET /api/cart/items - Fetch Cart Items with Totals › Price Fetching from Product Service (Anti-Tampering) › should call product service for each unique product ID
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+    [0m [90m 243 |[39m         [33m.[39m[36mget[39m([32m"/api/cart/items"[39m)
+     [90m 244 |[39m         [33m.[39m[36mset[39m([32m"Authorization"[39m[33m,[39m [32m`Bearer ${authToken}`[39m)
+    [31m[1m>[22m[39m[90m 245 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 246 |[39m
+     [90m 247 |[39m       [90m// Verify product service was called for each product[39m
+     [90m 248 |[39m       expect(axios[33m.[39m[36mget[39m)[33m.[39mtoHaveBeenCalledTimes([35m2[39m)[33m;[39m[0m
+
+      at Object.expect (__tests__/cart.getItems.test.js:245:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● GET /api/cart/items - Fetch Cart Items with Totals › Price Fetching from Product Service (Anti-Tampering) › should handle product service returning different price than stored
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+    [0m [90m 283 |[39m         [33m.[39m[36mget[39m([32m"/api/cart/items"[39m)
+     [90m 284 |[39m         [33m.[39m[36mset[39m([32m"Authorization"[39m[33m,[39m [32m`Bearer ${authToken}`[39m)
+    [31m[1m>[22m[39m[90m 285 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 286 |[39m
+     [90m 287 |[39m       [90m// Should use updated price from service[39m
+     [90m 288 |[39m       expect(response[33m.[39mbody[33m.[39mitems[[35m0[39m][33m.[39mprice)[33m.[39mtoBe([35m15.99[39m)[33m;[39m[0m
+
+      at Object.expect (__tests__/cart.getItems.test.js:285:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● GET /api/cart/items - Fetch Cart Items with Totals › Price Fetching from Product Service (Anti-Tampering) › should reject items if product service returns 404 (product not found)
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+    [0m [90m 320 |[39m         [33m.[39m[36mget[39m([32m"/api/cart/items"[39m)
+     [90m 321 |[39m         [33m.[39m[36mset[39m([32m"Authorization"[39m[33m,[39m [32m`Bearer ${authToken}`[39m)
+    [31m[1m>[22m[39m[90m 322 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 323 |[39m
+     [90m 324 |[39m       [90m// Should only return valid products[39m
+     [90m 325 |[39m       expect(response[33m.[39mbody[33m.[39mitems)[33m.[39mtoHaveLength([35m1[39m)[33m;[39m[0m
+
+      at Object.expect (__tests__/cart.getItems.test.js:322:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● GET /api/cart/items - Fetch Cart Items with Totals › Totals Calculation › should calculate correct subtotal from product service prices
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+    [0m [90m 363 |[39m         [33m.[39m[36mget[39m([32m"/api/cart/items"[39m)
+     [90m 364 |[39m         [33m.[39m[36mset[39m([32m"Authorization"[39m[33m,[39m [32m`Bearer ${authToken}`[39m)
+    [31m[1m>[22m[39m[90m 365 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 366 |[39m
+     [90m 367 |[39m       [36mconst[39m expectedSubtotal [33m=[39m [35m10.99[39m [33m*[39m [35m2[39m [33m+[39m [35m25.5[39m [33m*[39m [35m3[39m[33m;[39m
+     [90m 368 |[39m       expect(response[33m.[39mbody[33m.[39mtotals[33m.[39msubtotal)[33m.[39mtoBeCloseTo(expectedSubtotal[33m,[39m [35m2[39m)[33m;[39m[0m
+
+      at Object.expect (__tests__/cart.getItems.test.js:365:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● GET /api/cart/items - Fetch Cart Items with Totals › Totals Calculation › should calculate total including tax if applicable
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+    [0m [90m 403 |[39m         [33m.[39m[36mget[39m([32m"/api/cart/items"[39m)
+     [90m 404 |[39m         [33m.[39m[36mset[39m([32m"Authorization"[39m[33m,[39m [32m`Bearer ${authToken}`[39m)
+    [31m[1m>[22m[39m[90m 405 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 406 |[39m
+     [90m 407 |[39m       expect(response[33m.[39mbody[33m.[39mtotals)[33m.[39mtoHaveProperty([32m"subtotal"[39m)[33m;[39m
+     [90m 408 |[39m       expect(response[33m.[39mbody[33m.[39mtotals)[33m.[39mtoHaveProperty([32m"total"[39m)[33m;[39m[0m
+
+      at Object.expect (__tests__/cart.getItems.test.js:405:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● GET /api/cart/items - Fetch Cart Items with Totals › Totals Calculation › should handle zero quantity items correctly
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+    [0m [90m 436 |[39m         [33m.[39m[36mget[39m([32m"/api/cart/items"[39m)
+     [90m 437 |[39m         [33m.[39m[36mset[39m([32m"Authorization"[39m[33m,[39m [32m`Bearer ${authToken}`[39m)
+    [31m[1m>[22m[39m[90m 438 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 439 |[39m
+     [90m 440 |[39m       expect(response[33m.[39mbody[33m.[39mtotals[33m.[39msubtotal)[33m.[39mtoBe([35m0[39m)[33m;[39m
+     [90m 441 |[39m     })[33m;[39m[0m
+
+      at Object.expect (__tests__/cart.getItems.test.js:438:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● GET /api/cart/items - Fetch Cart Items with Totals › Response Structure › should return items with correct structure
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+    [0m [90m 478 |[39m         [33m.[39m[36mget[39m([32m"/api/cart/items"[39m)
+     [90m 479 |[39m         [33m.[39m[36mset[39m([32m"Authorization"[39m[33m,[39m [32m`Bearer ${authToken}`[39m)
+    [31m[1m>[22m[39m[90m 480 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 481 |[39m
+     [90m 482 |[39m       expect(response[33m.[39mbody)[33m.[39mtoHaveProperty([32m"items"[39m)[33m;[39m
+     [90m 483 |[39m       expect(response[33m.[39mbody)[33m.[39mtoHaveProperty([32m"totals"[39m)[33m;[39m[0m
+
+      at Object.expect (__tests__/cart.getItems.test.js:480:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● GET /api/cart/items - Fetch Cart Items with Totals › Response Structure › should return totals with correct structure
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+    [0m [90m 524 |[39m         [33m.[39m[36mget[39m([32m"/api/cart/items"[39m)
+     [90m 525 |[39m         [33m.[39m[36mset[39m([32m"Authorization"[39m[33m,[39m [32m`Bearer ${authToken}`[39m)
+    [31m[1m>[22m[39m[90m 526 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 527 |[39m
+     [90m 528 |[39m       expect(response[33m.[39mbody[33m.[39mtotals)[33m.[39mtoHaveProperty([32m"subtotal"[39m)[33m;[39m
+     [90m 529 |[39m       expect(response[33m.[39mbody[33m.[39mtotals)[33m.[39mtoHaveProperty([32m"total"[39m)[33m;[39m[0m
+
+      at Object.expect (__tests__/cart.getItems.test.js:526:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● GET /api/cart/items - Fetch Cart Items with Totals › Edge Cases › should handle cart with duplicate product IDs
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+    [0m [90m 614 |[39m         [33m.[39m[36mget[39m([32m"/api/cart/items"[39m)
+     [90m 615 |[39m         [33m.[39m[36mset[39m([32m"Authorization"[39m[33m,[39m [32m`Bearer ${authToken}`[39m)
+    [31m[1m>[22m[39m[90m 616 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 617 |[39m
+     [90m 618 |[39m       [90m// Should handle duplicates appropriately (either merge or list separately)[39m
+     [90m 619 |[39m       expect(response[33m.[39mbody[33m.[39mitems)[33m.[39mtoBeDefined()[33m;[39m[0m
+
+      at Object.expect (__tests__/cart.getItems.test.js:616:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● GET /api/cart/items - Fetch Cart Items with Totals › Edge Cases › should handle very large quantities
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+    [0m [90m 642 |[39m         [33m.[39m[36mget[39m([32m"/api/cart/items"[39m)
+     [90m 643 |[39m         [33m.[39m[36mset[39m([32m"Authorization"[39m[33m,[39m [32m`Bearer ${authToken}`[39m)
+    [31m[1m>[22m[39m[90m 644 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 645 |[39m
+     [90m 646 |[39m       [36mconst[39m expectedSubtotal [33m=[39m [35m10.99[39m [33m*[39m [35m1000000[39m[33m;[39m
+     [90m 647 |[39m       expect(response[33m.[39mbody[33m.[39mtotals[33m.[39msubtotal)[33m.[39mtoBeCloseTo(expectedSubtotal[33m,[39m [35m2[39m)[33m;[39m[0m
+
+      at Object.expect (__tests__/cart.getItems.test.js:644:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● GET /api/cart/items - Fetch Cart Items with Totals › Edge Cases › should handle empty cart items array
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+    [0m [90m 658 |[39m         [33m.[39m[36mget[39m([32m"/api/cart/items"[39m)
+     [90m 659 |[39m         [33m.[39m[36mset[39m([32m"Authorization"[39m[33m,[39m [32m`Bearer ${authToken}`[39m)
+    [31m[1m>[22m[39m[90m 660 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 661 |[39m
+     [90m 662 |[39m       expect(response[33m.[39mbody[33m.[39mitems)[33m.[39mtoEqual([])[33m;[39m
+     [90m 663 |[39m       expect(response[33m.[39mbody[33m.[39mtotals[33m.[39msubtotal)[33m.[39mtoBe([35m0[39m)[33m;[39m[0m
+
+      at Object.expect (__tests__/cart.getItems.test.js:660:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+FAIL __tests__/cart.addItem.test.js (28.62 s)
+  ● Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (5) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.error
+      Error adding item to cart: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at addItemToCart (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:67:5) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at addItemToCart (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:67:5) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 77 |[39m     })[33m;[39m
+     [90m 78 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 79 |[39m     console[33m.[39merror([32m"Error adding item to cart:"[39m[33m,[39m error)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 80 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({ error[33m:[39m [32m"Failed to add item to cart"[39m })[33m;[39m
+     [90m 81 |[39m   }
+     [90m 82 |[39m }[33m;[39m[0m
+
+      at error (src/controllers/cart.controller.js:79:13)
+
+    console.error
+      Error adding item to cart: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at addItemToCart (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:67:5) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at addItemToCart (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:67:5) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 77 |[39m     })[33m;[39m
+     [90m 78 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 79 |[39m     console[33m.[39merror([32m"Error adding item to cart:"[39m[33m,[39m error)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 80 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({ error[33m:[39m [32m"Failed to add item to cart"[39m })[33m;[39m
+     [90m 81 |[39m   }
+     [90m 82 |[39m }[33m;[39m[0m
+
+      at error (src/controllers/cart.controller.js:79:13)
+
+    console.error
+      Error adding item to cart: ValidationError: cart validation failed: userId: Path `userId` is required.
+          at model.Document.invalidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3379:32)
+          at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3154:13)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at async Promise.all (index 0)
+          at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3095:3)
+          at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+          at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+          at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+          at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+          at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+          at addItemToCart (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:67:5) {
+        errors: {
+          userId: ValidatorError: Path `userId` is required.
+              at SchemaObjectId.doValidate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\schemaType.js:1425:13)
+              at validatePath (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3146:24)
+              at model.$__validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:3092:21)
+              at processTicksAndRejections (node:internal/process/task_queues:105:5)
+              at model.validate (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\document.js:2672:5)
+              at model.validateBeforeSave (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\plugins\validateBeforeSave.js:34:7)
+              at Kareem.execPre (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\kareem\index.js:65:24)
+              at model.$__save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:369:5)
+              at model.save (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongoose\lib\model.js:609:5)
+              at addItemToCart (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\src\controllers\cart.controller.js:67:5) {
+            properties: [Object],
+            kind: 'required',
+            path: 'userId',
+            value: undefined,
+            reason: undefined,
+            [Symbol(mongoose#validatorError)]: true
+          }
+        },
+        _message: 'cart validation failed'
+      }
+
+    [0m [90m 77 |[39m     })[33m;[39m
+     [90m 78 |[39m   } [36mcatch[39m (error) {
+    [31m[1m>[22m[39m[90m 79 |[39m     console[33m.[39merror([32m"Error adding item to cart:"[39m[33m,[39m error)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 80 |[39m     res[33m.[39mstatus([35m500[39m)[33m.[39mjson({ error[33m:[39m [32m"Failed to add item to cart"[39m })[33m;[39m
+     [90m 81 |[39m   }
+     [90m 82 |[39m }[33m;[39m[0m
+
+      at error (src/controllers/cart.controller.js:79:13)
+
+  ● POST /api/cart/items - Add item with availability + optional soft reserve › Cart updates without reservation › creates a new cart entry when none exists
+
+    expected 201 "Created", got 500 "Internal Server Error"
+
+    [0m [90m 122 |[39m         [33m.[39m[36mset[39m(authHeader())
+     [90m 123 |[39m         [33m.[39msend({ productId[33m,[39m qty[33m:[39m [35m2[39m })
+    [31m[1m>[22m[39m[90m 124 |[39m         [33m.[39mexpect([35m201[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 125 |[39m
+     [90m 126 |[39m       expect(axios[33m.[39m[36mget[39m)[33m.[39mtoHaveBeenCalledWith(
+     [90m 127 |[39m         [32m`${productServiceUrl}/api/products/${productId}`[39m[33m,[39m[0m
+
+      at Object.expect (__tests__/cart.addItem.test.js:124:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● POST /api/cart/items - Add item with availability + optional soft reserve › Cart updates without reservation › increments quantity when item already exists
+
+    expected 200 "OK", got 500 "Internal Server Error"
+
+    [0m [90m 151 |[39m         [33m.[39m[36mset[39m(authHeader())
+     [90m 152 |[39m         [33m.[39msend({ productId[33m:[39m productId[33m.[39mtoString()[33m,[39m qty[33m:[39m [35m2[39m })
+    [31m[1m>[22m[39m[90m 153 |[39m         [33m.[39mexpect([35m200[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 154 |[39m
+     [90m 155 |[39m       [36mconst[39m updatedCart [33m=[39m [36mawait[39m cartModel[33m.[39mfindOne({ userId })[33m;[39m
+     [90m 156 |[39m       expect(updatedCart[33m.[39mitems[[35m0[39m][33m.[39mquantity)[33m.[39mtoBe([35m3[39m)[33m;[39m[0m
+
+      at Object.expect (__tests__/cart.addItem.test.js:153:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+  ● POST /api/cart/items - Add item with availability + optional soft reserve › Optional soft stock reservation › calls reservation endpoint when reserve=true
+
+    expected 201 "Created", got 500 "Internal Server Error"
+
+    [0m [90m 171 |[39m         [33m.[39m[36mset[39m(authHeader())
+     [90m 172 |[39m         [33m.[39msend({ productId[33m,[39m qty[33m:[39m [35m2[39m })
+    [31m[1m>[22m[39m[90m 173 |[39m         [33m.[39mexpect([35m201[39m)[33m;[39m
+     [90m     |[39m          [31m[1m^[22m[39m
+     [90m 174 |[39m
+     [90m 175 |[39m       expect(axios[33m.[39mpost)[33m.[39mtoHaveBeenCalledWith(
+     [90m 176 |[39m         [32m`${productServiceUrl}/api/products/${productId}/reserve`[39m[33m,[39m[0m
+
+      at Object.expect (__tests__/cart.addItem.test.js:173:10)
+      ----
+      at Test._assertStatus (node_modules/supertest/lib/test.js:309:14)
+      at node_modules/supertest/lib/test.js:365:13
+      at Test._assertFunction (node_modules/supertest/lib/test.js:342:13)
+      at Test.assert (node_modules/supertest/lib/test.js:195:23)
+      at localAssert (node_modules/supertest/lib/test.js:138:14)
+      at Server.<anonymous> (node_modules/supertest/lib/test.js:152:11)
+
+FAIL __tests__/cart.deleteItem.test.js (17.14 s)
+  ● Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (5) from .env -- tip: 👥 sync secrets across teammates & machines: https://dotenvx.com/ops
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.warn
+      Starting the MongoMemoryServer Instance failed, enable debug log for more information. Error:
+       GenericMMSError: Instance failed to start within 10000ms
+          at Timeout.<anonymous> (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongodb-memory-server-core\src\util\MongoInstance.ts:383:21)
+          at listOnTimeout (node:internal/timers:588:17)
+          at processTimers (node:internal/timers:523:7)
+
+    [0m [90m 15 |[39m
+     [90m 16 |[39m   beforeAll([36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 17 |[39m     mongoServer [33m=[39m [36mawait[39m [33mMongoMemoryServer[39m[33m.[39mcreate({
+     [90m    |[39m                   [31m[1m^[22m[39m
+     [90m 18 |[39m       instance[33m:[39m { dbName[33m:[39m [32m"test-cart-db"[39m }[33m,[39m
+     [90m 19 |[39m       timeout[33m:[39m [35m60000[39m[33m,[39m
+     [90m 20 |[39m     })[33m;[39m[0m
+
+      at node_modules/mongodb-memory-server-core/src/MongoMemoryServer.ts:359:17
+      at MongoMemoryServer.start (node_modules/mongodb-memory-server-core/src/MongoMemoryServer.ts:350:5)
+      at Function.create (node_modules/mongodb-memory-server-core/src/MongoMemoryServer.ts:317:5)
+      at Object.<anonymous> (__tests__/cart.deleteItem.test.js:17:19)
+
+  ● DELETE /api/cart/items/:productId - Remove item from cart › Validation & auth › rejects when no auth token is provided
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/items/:productId - Remove item from cart › Validation & auth › rejects invalid token
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/items/:productId - Remove item from cart › Validation & auth › rejects when user role is insufficient
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/items/:productId - Remove item from cart › Validation & auth › rejects invalid productId param format
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/items/:productId - Remove item from cart › Cart and item existence › returns 404 when cart does not exist
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/items/:productId - Remove item from cart › Cart and item existence › returns 404 when item does not exist in cart
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/items/:productId - Remove item from cart › Cart and item existence › returns 404 when cart exists but is empty
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/items/:productId - Remove item from cart › Successful item removal › removes item from cart when it exists
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/items/:productId - Remove item from cart › Successful item removal › removes specific item when cart has multiple items
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/items/:productId - Remove item from cart › Successful item removal › returns updated cart in response
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/items/:productId - Remove item from cart › Edge cases › handles removal of item with large quantity
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/items/:productId - Remove item from cart › Edge cases › handles removal when item quantity is 1
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/items/:productId - Remove item from cart › Edge cases › handles removal from cart with duplicate product IDs (if schema allows)
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/items/:productId - Remove item from cart › Edge cases › handles removal when cart becomes empty
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/items/:productId - Remove item from cart › Response structure › returns correct response format on successful deletion
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/items/:productId - Remove item from cart › Response structure › includes cart in response when item is removed
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/items/:productId - Remove item from cart › User isolation › only removes item from authenticated user's cart
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+
+  ● Test suite failed to run
+
+    TypeError: Cannot read properties of undefined (reading 'stop')
+
+    [0m [90m 30 |[39m   afterAll([36masync[39m () [33m=>[39m {
+     [90m 31 |[39m     [36mawait[39m mongoose[33m.[39mdisconnect()[33m;[39m
+    [31m[1m>[22m[39m[90m 32 |[39m     [36mawait[39m mongoServer[33m.[39mstop()[33m;[39m
+     [90m    |[39m                       [31m[1m^[22m[39m
+     [90m 33 |[39m   })[33m;[39m
+     [90m 34 |[39m
+     [90m 35 |[39m   beforeEach([36masync[39m () [33m=>[39m {[0m
+
+      at Object.stop (__tests__/cart.deleteItem.test.js:32:23)
+
+FAIL __tests__/cart.clearCart.test.js (17.405 s)
+  ● Console
+
+    console.log
+      [dotenv@17.2.3] injecting env (5) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+
+      at _log (node_modules/dotenv/lib/main.js:142:11)
+
+    console.warn
+      Starting the MongoMemoryServer Instance failed, enable debug log for more information. Error:
+       GenericMMSError: Instance failed to start within 10000ms
+          at Timeout.<anonymous> (C:\Users\siddharthtawde\OneDrive\Desktop\BMS\Backend\Cart\node_modules\mongodb-memory-server-core\src\util\MongoInstance.ts:383:21)
+          at listOnTimeout (node:internal/timers:588:17)
+          at processTimers (node:internal/timers:523:7)
+
+    [0m [90m 15 |[39m
+     [90m 16 |[39m   beforeAll([36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 17 |[39m     mongoServer [33m=[39m [36mawait[39m [33mMongoMemoryServer[39m[33m.[39mcreate({
+     [90m    |[39m                   [31m[1m^[22m[39m
+     [90m 18 |[39m       instance[33m:[39m { dbName[33m:[39m [32m"test-cart-db"[39m }[33m,[39m
+     [90m 19 |[39m       timeout[33m:[39m [35m60000[39m[33m,[39m
+     [90m 20 |[39m     })[33m;[39m[0m
+
+      at node_modules/mongodb-memory-server-core/src/MongoMemoryServer.ts:359:17
+      at MongoMemoryServer.start (node_modules/mongodb-memory-server-core/src/MongoMemoryServer.ts:350:5)
+      at Function.create (node_modules/mongodb-memory-server-core/src/MongoMemoryServer.ts:317:5)
+      at Object.<anonymous> (__tests__/cart.clearCart.test.js:17:19)
+
+  ● DELETE /api/cart/ - Clear cart › Validation & auth › rejects when no auth token is provided
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › Validation & auth › rejects invalid token
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › Validation & auth › rejects when user role is insufficient
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › Cart existence checks › returns 404 when cart does not exist
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › Cart existence checks › successfully clears an empty cart
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › Successful cart clearing › clears cart with single item
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › Successful cart clearing › clears cart with multiple items
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › Successful cart clearing › clears cart with items of large quantities
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › Response structure › returns correct response format on successful clear
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › Response structure › returns cleared cart object in response
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › Response structure › returns cart with correct userId
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › User isolation › only clears the authenticated user's cart
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › User isolation › does not affect carts of other users when clearing
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › Data persistence › persists cleared cart in database
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › Data persistence › maintains cart id after clearing
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › Data persistence › maintains userId after clearing
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › Edge cases › can clear cart multiple times consecutively
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › Edge cases › handles clearing cart with mixed quantity items
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › Edge cases › returns 200 even when clearing already empty cart
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+  ● DELETE /api/cart/ - Clear cart › Idempotency › clearing cart is idempotent
+
+    Instance failed to start within 10000ms
+
+      at Timeout.<anonymous> (node_modules/mongodb-memory-server-core/src/util/MongoInstance.ts:383:21)
+
+
+  ● Test suite failed to run
+
+    TypeError: Cannot read properties of undefined (reading 'stop')
+
+    [0m [90m 30 |[39m   afterAll([36masync[39m () [33m=>[39m {
+     [90m 31 |[39m     [36mawait[39m mongoose[33m.[39mdisconnect()[33m;[39m
+    [31m[1m>[22m[39m[90m 32 |[39m     [36mawait[39m mongoServer[33m.[39mstop()[33m;[39m
+     [90m    |[39m                       [31m[1m^[22m[39m
+     [90m 33 |[39m   })[33m;[39m
+     [90m 34 |[39m
+     [90m 35 |[39m   beforeEach([36masync[39m () [33m=>[39m {[0m
+
+      at Object.stop (__tests__/cart.clearCart.test.js:32:23)
+
+Test Suites: 5 failed, 5 total
+Tests:       55 failed, 18 passed, 73 total
+Snapshots:   0 total
+Time:        91.517 s
+Ran all test suites.
