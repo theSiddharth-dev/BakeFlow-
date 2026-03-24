@@ -12,9 +12,9 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: [
-        "http://localhost:5173",
+        "https://bake-flow-nu.vercel.app",
         "https://auth-service-j068.onrender.com",
-        "https://product-service-58x4.onrender.com/",
+        "https://product-service-58x4.onrender.com",
         "https://cart-service-qxtm.onrender.com",
         "https://order-service-2ggi.onrender.com",
         "https://payment-service-q53e.onrender.com",
