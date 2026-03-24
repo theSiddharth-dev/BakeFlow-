@@ -279,7 +279,7 @@ const createOrder = async (req, res) => {
 
   try {
     // 1️⃣ Fetch cart items
-    const cartResponse = await axios.get(`${CART_API_URL}/items`, {
+    const cartResponse = await axios.get(`${CART_API_URL}/api/cart/items`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
