@@ -279,7 +279,7 @@ const createOrder = async (req, res) => {
 
   try {
     // 1️⃣ Fetch cart items
-    const cartResponse = await axios.get(`${CART_API_URL}/api/cart/items`, {
+    const cartResponse = await axios.get(`${CART_API_URL}/items`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -293,7 +293,7 @@ const createOrder = async (req, res) => {
 
     // 2️⃣ Fetch all product details
     const productRequests = cartItems.map((item) =>
-      axios.get(`${PRODUCT_API_URL}/api/products/${item.productId}`, {
+      axios.get(`${PRODUCT_API_URL}/${item.productId}`, {
         headers: { Authorization: `Bearer ${token}` },
       }),
     );
@@ -357,7 +357,7 @@ priceAmount += itemTotal;
 
     // 5️⃣ Reserve inventory
     await axios.post(
-      `${PRODUCT_API_URL}/api/products/inventory/reserve`,
+      `${PRODUCT_API_URL}/inventory/reserve`,
       { items: inventoryItems },
       {
         headers: { Authorization: `Bearer ${token}` },
@@ -381,7 +381,7 @@ priceAmount += itemTotal;
     } catch (orderCreateError) {
       // 7️⃣ Release inventory if order fails
       await axios.post(
-        `${PRODUCT_API_URL}/api/products/inventory/release`,
+        `${PRODUCT_API_URL}/inventory/release`,
         { items: inventoryItems },
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -399,7 +399,8 @@ priceAmount += itemTotal;
       order,
     });
   } catch (err) {
-
+    console.log("FULL ERROR:", err.response?.data || err.message);
+    
     if (err.response?.status) {
       return res.status(err.response.status).json({
         message:
