@@ -357,7 +357,7 @@ priceAmount += itemTotal;
 
     // 5️⃣ Reserve inventory
     await axios.post(
-      `${PRODUCT_API_URL}/inventory/reserve`,
+      `${PRODUCT_API_URL}/api/products/inventory/reserve`,
       { items: inventoryItems },
       {
         headers: { Authorization: `Bearer ${token}` },
@@ -381,7 +381,7 @@ priceAmount += itemTotal;
     } catch (orderCreateError) {
       // 7️⃣ Release inventory if order fails
       await axios.post(
-        `${PRODUCT_API_URL}/inventory/release`,
+        `${PRODUCT_API_URL}/api/products/inventory/release`,
         { items: inventoryItems },
         {
           headers: { Authorization: `Bearer ${token}` },
