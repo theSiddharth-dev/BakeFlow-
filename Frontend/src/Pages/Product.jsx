@@ -38,6 +38,8 @@ const Product = () => {
   const [skip, setSkip] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [allProductsLoadedForSearch, setAllProductsLoadedForSearch] =
+    useState(false);
   const navigate = useNavigate();
 
   const token = localStorage.getItem("token");
@@ -83,6 +85,7 @@ const Product = () => {
           setProducts((prev) => [...prev, ...list]);
         } else {
           setProducts(list);
+          setAllProductsLoadedForSearch(false);
         }
 
         setSkip(skipVal + list.length);
@@ -101,6 +104,47 @@ const Product = () => {
     [activeCategory],
   );
 
+  const fetchAllProductsForSearch = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      const allProducts = [];
+      let localSkip = 0;
+
+      while (true) {
+        const res = await axios.get(`${PRODUCT_URL}/api/products/`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          params: {
+            skip: localSkip,
+            limit: PAGE_SIZE,
+          },
+        });
+
+        const list = res.data?.data ?? [];
+        allProducts.push(...list);
+        localSkip += list.length;
+
+        if (list.length < PAGE_SIZE) {
+          break;
+        }
+      }
+
+      setProducts(allProducts);
+      setSkip(allProducts.length);
+      setHasMore(false);
+      setAllProductsLoadedForSearch(true);
+    } catch (err) {
+      console.error(
+        "Error fetching all products for search:",
+        err?.response?.data || err.message,
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const handleLoadMore = useCallback(() => {
     fetchProducts(skip, true, activeCategory);
   }, [activeCategory, fetchProducts, skip]);
@@ -108,6 +152,30 @@ const Product = () => {
   useEffect(() => {
     fetchProducts(0, false, activeCategory);
   }, [activeCategory, fetchProducts]);
+
+  useEffect(() => {
+    const searchingAllProducts =
+      activeCategory === "All Products" && Boolean(searchQuery.trim());
+
+    if (searchingAllProducts && !allProductsLoadedForSearch) {
+      fetchAllProductsForSearch();
+      return;
+    }
+
+    if (
+      activeCategory === "All Products" &&
+      !searchQuery.trim() &&
+      allProductsLoadedForSearch
+    ) {
+      fetchProducts(0, false, activeCategory);
+    }
+  }, [
+    activeCategory,
+    allProductsLoadedForSearch,
+    fetchAllProductsForSearch,
+    fetchProducts,
+    searchQuery,
+  ]);
 
   const filtered = products.filter((p) => {
     const stock = Number(p?.stock ?? 0);
